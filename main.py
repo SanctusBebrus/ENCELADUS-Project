@@ -7,13 +7,11 @@ from settings import WINDOW_SIZE, CAPTION
 
 class Field:
     default_field = [
-        [1, 1, 1, 1, 1, 1],
-        [1, 2, 2, 2, 2, 1],
-        [1, 2, 0, 0, 2, 1],
-        [1, 2, 2, 2, 2, 1],
-        [1, 2, 0, 0, 2, 1],
-        [1, 2, 2, 2, 2, 1],
-        [1, 1, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ]
 
     def __init__(self, field: list[list[int]] = default_field, rect_size: int = 50,
@@ -23,11 +21,18 @@ class Field:
         self.rect_size = rect_size
         self.scroll_speed = scroll_speed
         self.can_get_rel = False
-        self.surface = pygame.surface.Surface(WINDOW_SIZE)
 
-    def update(self, events) -> None:
+        self.max_rect_size = 100
+        self.min_rect_size = 25
+
+        self.surface = pygame.surface.Surface((len(field[0]) * self.max_rect_size,
+                                              len(field) * self.max_rect_size))
+
+    def update(self, surface, events) -> None:
         self.event_control(events)
         self.draw()
+
+        surface.blit(field.surface, field.coords)
 
     def event_control(self, events) -> None:
         for event in events:
@@ -54,7 +59,7 @@ class Field:
                     self.can_get_rel = False
 
     def zoom(self, px: int) -> None:
-        if 25 < self.rect_size + px < 100:
+        if self.min_rect_size < self.rect_size + px < self.max_rect_size:
             self.rect_size += px
 
     def draw(self) -> None:
@@ -99,8 +104,6 @@ while True:
         if e.type == pygame.QUIT:
             pygame.quit()
 
-    field.update(events)
-
-    screen.blit(field.surface, field.coords)
+    field.update(screen, events)
 
     pygame.display.update()
