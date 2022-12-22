@@ -1,8 +1,8 @@
 class Team:
-    def __init__(self, color: str) -> None:
+    def __init__(self, color: tuple[int, int, int]) -> None:
         self.color = color
 
-    def get_color(self):
+    def get_color(self) -> tuple[int, int, int]:
         return self.color
 
 
@@ -11,5 +11,5 @@ class Player:
         self.team = team
         self.money = 0
 
-    def get_player_team_color(self):
+    def get_player_team_color(self) -> tuple[int, int, int]:
         return self.team.color
