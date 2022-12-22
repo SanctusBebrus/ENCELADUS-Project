@@ -1,5 +1,3 @@
-from typing import List
-
 import pygame
 
 from settings import WINDOW_SIZE, CAPTION
