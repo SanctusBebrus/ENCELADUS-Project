@@ -11,6 +11,7 @@ class Unit:
         self.defence = 0
         self.distance = 0
         self.is_dead = True
+        self.diagonal_distance = self.distance - 2
 
     def get_team(self):
         return self.team
