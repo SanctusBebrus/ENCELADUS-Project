@@ -1,20 +1,28 @@
 import pygame
 
+import random
 import settings
 import units
+import player
 
 snow_image_path = 'sprites/cell/snow.png'
 stone_image_path = 'sprites/cell/stone.png'
 grass_image_path = 'sprites/cell/grass.png'
 
-unit1 = units.Rover(1)
-unit2 = units.Hunter(1)
+team_1 = player.Team((255, 0, 0))
+team_2 = player.Team((0, 0, 255))
+
+player_1 = player.Player(team_1)
+player_2 = player.Player(team_2)
+
+unit1 = units.Rover(team_1)
+unit2 = units.Hunter(team_2)
 
 
 class Cell:
     size = 50
 
-    def __init__(self, image_path: str = snow_image_path, team: 'Team' = None, unit: units.Unit or None = None):
+    def __init__(self, team: player.Team, image_path: str = snow_image_path, unit: units.Unit or None = None):
         self.image = pygame.image.load(image_path)
 
         self.alpha_surface = pygame.surface.Surface((Cell.size, Cell.size), pygame.SRCALPHA)
@@ -24,10 +32,10 @@ class Cell:
         self.unit = unit
         self.defence_level = 0
 
-    def draw(self, surface: pygame.surface.Surface, pos: tuple[int, int], alpha=70) -> None:
+    def draw(self, surface: pygame.surface.Surface, pos: tuple[int, int], alpha=20) -> None:
         self.alpha_surface = pygame.surface.Surface((settings.cell_size, settings.cell_size), pygame.SRCALPHA)
         self.surface = pygame.surface.Surface((settings.cell_size, settings.cell_size), pygame.SRCALPHA)
-        self.alpha_surface.fill((255, 0, 0, alpha))
+        self.alpha_surface.fill((*self.team.color, alpha))
 
         self.surface.blit(pygame.transform.scale(self.image, (settings.cell_size - 2, settings.cell_size - 2)), (0, 0))
         self.surface.blit(self.alpha_surface, (0, 0))
@@ -40,15 +48,25 @@ class Cell:
     def set_image(self, image_path: str) -> None:
         self.image = pygame.image.load(image_path)
 
-    def set_unit(self, unit: 'Unit') -> None:
+    def set_unit(self, unit: 'Unit' or None) -> None:
         self.unit = unit
+
+        if unit is not None:
+            self.team = self.get_unit().get_team()
 
     def set_team(self, team: 'Team') -> None:
         self.team = team
 
+    def get_unit(self):
+        return self.unit
+
+    def get_team(self):
+        return self.team
+
 
 class Field:
-    default_field = list(map(lambda y: list(map(lambda x: Cell(), range(10))), range(10)))
+    default_field = list(
+        map(lambda y: list(map(lambda x: Cell(random.choice([team_1, team_2])), range(15))), range(25)))
     default_field[0][0].set_unit(unit1)
     default_field[7][5].set_unit(unit2)
 
@@ -108,15 +126,39 @@ class Field:
 
     def get_where_can_move(self):
         where_can_move = list()
-        current_unit = self.get_cell(self.current_cell).unit
-        for x in range(self.current_cell[0] - current_unit.distance,
-                       self.current_cell[0] + current_unit.distance + 1):
-            for y in range(self.current_cell[1] - current_unit.distance,
-                           self.current_cell[1] + current_unit.distance + 1):
-                if x < 0 or x >= len(self.field[0]) or y < 0 or x >= len(self.field):
-                    continue
-                if x == self.current_cell[0] or y == self.current_cell[1]:
-                    where_can_move.append((x, y))
+        current_unit = self.get_cell(self.current_cell).get_unit()
+
+        for coord in [
+            range(self.current_cell[0], self.current_cell[0] + current_unit.distance + 1),
+            range(self.current_cell[0], self.current_cell[0] - current_unit.distance - 1, -1)
+        ]:
+            prev_cell = self.get_cell(self.current_cell)
+            for x in coord:
+                if x >= len(self.field[0]):
+                    break
+
+                cur_cell = self.get_cell((x, self.current_cell[1]))
+
+                where_can_move.append((x, self.current_cell[1]))
+                if prev_cell.get_team() != cur_cell.get_team():
+                    break
+
+                prev_cell = cur_cell
+        for coord in [
+            range(self.current_cell[1], self.current_cell[1] + current_unit.distance + 1),
+            range(self.current_cell[1], self.current_cell[1] - current_unit.distance - 1, -1)
+        ]:
+            for y in coord:
+                if y > len(self.field):
+                    break
+
+                cur_cell = self.get_cell((self.current_cell[0], y))
+
+                where_can_move.append((self.current_cell[0], y))
+                if prev_cell.get_team() != cur_cell.get_team():
+                    break
+
+                prev_cell = cur_cell
 
         return where_can_move
 
@@ -132,13 +174,13 @@ class Field:
                 rect = pygame.Rect(x * settings.cell_size, y * settings.cell_size, settings.cell_size,
                                    settings.cell_size)
 
-                self.field[y][x].draw(self.surface, (rect.x, rect.y), alpha=30 if (x, y) in where_can_move else 70)
+                self.field[y][x].draw(self.surface, (rect.x, rect.y), alpha=100 if (x, y) in where_can_move else 15)
 
-    def move_unit(self, pos, pos1):
-        self.get_cell(pos1).unit = self.get_cell(pos).unit
-        self.get_cell(pos).unit = None
+    def move_unit(self, pos: tuple[int, int], pos1: tuple[int, int]):
+        self.get_cell(pos1).set_unit(self.get_cell(pos).get_unit())
+        self.get_cell(pos).set_unit(None)
 
-    def get_cell(self, pos):
+    def get_cell(self, pos: tuple[int, int]):
         return self.field[pos[1]][pos[0]]
 
     def on_click(self):
