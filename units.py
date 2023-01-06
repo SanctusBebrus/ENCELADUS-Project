@@ -1,4 +1,7 @@
 import pygame
+import settings
+
+path = 'sprites/units/'
 
 
 class Unit:
@@ -37,17 +40,20 @@ class Unit:
         self.defence = value
 
     def resize(self):
-        return pygame.transform.scale(self.image, (Cell.size, Cell.size))
+        return pygame.transform.scale(self.image, (settings.cell_size, settings.cell_size))
 
     def draw_unit(self, surface: pygame.surface.Surface, pos: tuple[int, int]):
-        self.resize()
-        surface.blit(self.resize(), pos)
+        image = self.resize()
+        surface.blit(image, (
+            pos[0] + (settings.cell_size - image.get_width()) // 2,
+            pos[1] + (settings.cell_size - image.get_height()) // 2
+        ))
 
 
 class Mine(Unit):
     def __init__(self, team):
         super(Mine, self).__init__(team)
-        self.image = pygame.image.load('images/mine_sprite.png')
+        self.image = pygame.image.load(path + 'mine_sprite.png')
         self.cost = 60
         self.maintenance = 0
         self.default_defence = 0
@@ -56,41 +62,41 @@ class Mine(Unit):
         self.profit = 25
         self.is_dead = False
 
-    def set_money(self):
+    def get_money(self):
         return self.profit
 
     def resize(self):
-        return pygame.transform.scale(self.image, (Cell.size + 186, Cell.size + 120))
+        return pygame.transform.scale(self.image, (settings.cell_size + 186, settings.cell_size + 120))
 
 
 class Base(Unit):
     def __init__(self, team):
         super(Base, self).__init__(team)
-        self.image = pygame.image.load('images/base_sprt.png')
+        self.image = pygame.image.load(path + 'base_sprt.png')
         self.default_defence = 2
         self.is_dead = False
 
     def resize(self):
-        return pygame.transform.scale(self.image, (Cell.size + 50, Cell.size + 20))
+        return pygame.transform.scale(self.image, (settings.cell_size + 50, settings.cell_size + 20))
 
 
 class Tower(Unit):
     def __init__(self, team):
         super(Tower, self).__init__(team)
-        self.image = pygame.image.load('images/tower_sprt.png')
+        self.image = pygame.image.load(path + 'tower_sprt.png')
         self.cost = 25
         self.maintenance = 10
         self.default_defence = 2
         self.is_dead = False
 
     def resize(self):
-        return pygame.transform.scale(self.image, (Cell.size - 10, Cell.size - 10))
+        return pygame.transform.scale(self.image, (settings.cell_size - 10, settings.cell_size - 10))
 
 
 class Rover(Unit):
     def __init__(self, team):
         super(Rover, self).__init__(team)
-        self.image = pygame.image.load('images/rover_sprt.png')
+        self.image = pygame.image.load(path + 'rover_sprt.png')
         self.cost = 15
         self.maintenance = 5
         self.default_defence = 1
@@ -98,13 +104,13 @@ class Rover(Unit):
         self.distance = 5
 
     def resize(self):
-        return pygame.transform.scale(self.image, (Cell.size - 22, Cell.size - 22))
+        return pygame.transform.scale(self.image, (settings.cell_size - 22, settings.cell_size - 22))
 
 
 class Rhino(Unit):
     def __init__(self, team):
         super(Rhino, self).__init__(team)
-        self.image = pygame.image.load('images/rhino_sprite.png')
+        self.image = pygame.image.load(path + 'rhino_sprite.png')
         self.cost = 25
         self.maintenance = 10
         self.default_defence = 2
@@ -112,13 +118,13 @@ class Rhino(Unit):
         self.distance = 4
 
     def resize(self):
-        return pygame.transform.scale(self.image, (Cell.size - 20, Cell.size - 30))
+        return pygame.transform.scale(self.image, (settings.cell_size - 20, settings.cell_size - 30))
 
 
 class Hunter(Unit):
     def __init__(self, team):
         super(Hunter, self).__init__(team)
-        self.image = pygame.image.load('images/hunter.png')
+        self.image = pygame.image.load(path + 'hunter.png')
         self.cost = 35
         self.maintenance = 15
         self.default_defence = 3
@@ -126,13 +132,13 @@ class Hunter(Unit):
         self.distance = 6
 
     def resize(self):
-        return pygame.transform.scale(self.image, (Cell.size - 10, Cell.size - 10))
+        return pygame.transform.scale(self.image, (settings.cell_size - 10, settings.cell_size - 10))
 
 
 class Devastator(Unit):
     def __init__(self, team):
         super(Devastator, self).__init__(team)
-        self.image = pygame.image.load('images/devastator.png')
+        self.image = pygame.image.load(path + 'devastator.png')
         self.cost = 45
         self.maintenance = 20
         self.default_defence = 4
@@ -140,4 +146,4 @@ class Devastator(Unit):
         self.distance = 4
 
     def resize(self):
-        return pygame.transform.scale(self.image, (Cell.size + 20, Cell.size + 10))
+        return pygame.transform.scale(self.image, (settings.cell_size + 20, settings.cell_size + 10))
