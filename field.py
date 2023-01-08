@@ -48,19 +48,19 @@ class Cell:
     def set_image(self, image_path: str) -> None:
         self.image = pygame.image.load(image_path)
 
-    def set_unit(self, unit: 'Unit' or None) -> None:
+    def set_unit(self, unit: units.Unit or None) -> None:
         self.unit = unit
 
         if unit is not None:
             self.team = self.get_unit().get_team()
 
-    def set_team(self, team: 'Team') -> None:
+    def set_team(self, team: player.Team) -> None:
         self.team = team
 
-    def get_unit(self):
+    def get_unit(self) -> units.Unit:
         return self.unit
 
-    def get_team(self):
+    def get_team(self) -> player.Team:
         return self.team
 
 
@@ -72,7 +72,7 @@ class Field:
 
     def __init__(self, field: list[list[Cell]] = default_field,
                  scroll_speed=4):
-        self.current_cell = None
+        self.current_cell_coords = None
 
         self.field = field
         self.coords = self.x, self.y = (0, 0)
@@ -126,47 +126,35 @@ class Field:
 
     def get_where_can_move(self):
         where_can_move = list()
-        current_unit = self.get_cell(self.current_cell).get_unit()
+        other_cells = list()
 
-        for coord in [
-            range(self.current_cell[0], self.current_cell[0] + current_unit.distance + 1),
-            range(self.current_cell[0], self.current_cell[0] - current_unit.distance - 1, -1)
-        ]:
-            prev_cell = self.get_cell(self.current_cell)
-            for x in coord:
-                if x >= len(self.field[0]):
-                    break
+        current_cell = self.get_cell(self.current_cell_coords)
+        disntance = (current_cell.get_unit().distance - 1) // 2
 
-                cur_cell = self.get_cell((x, self.current_cell[1]))
+        x_range = list(range(self.current_cell_coords[0] - disntance, self.current_cell_coords[0] + disntance + 1))
+        y_range = list(range(self.current_cell_coords[1] - disntance, self.current_cell_coords[1] + disntance + 1))
+        for y in y_range:
+            for x in x_range:
+                cell = self.get_cell((x, y))
+                if cell.get_team() != current_cell.get_team():
+                    continue
 
-                where_can_move.append((x, self.current_cell[1]))
-                if prev_cell.get_team() != cur_cell.get_team():
-                    break
+                for x1 in [-1, 0, 1]:
+                    for y1 in [-1, 0, 1]:
+                        if abs(x1) == abs(y1):
+                            continue
 
-                prev_cell = cur_cell
-        for coord in [
-            range(self.current_cell[1], self.current_cell[1] + current_unit.distance + 1),
-            range(self.current_cell[1], self.current_cell[1] - current_unit.distance - 1, -1)
-        ]:
-            for y in coord:
-                if y > len(self.field):
-                    break
+                        if (x + x1) in x_range and (y + y1) in y_range:
+                            where_can_move.append((x + x1, y + y1))
 
-                cur_cell = self.get_cell((self.current_cell[0], y))
-
-                where_can_move.append((self.current_cell[0], y))
-                if prev_cell.get_team() != cur_cell.get_team():
-                    break
-
-                prev_cell = cur_cell
-
+        print(other_cells)
         return where_can_move
 
     def draw(self) -> None:
         self.surface.fill((0, 0, 0))
 
         where_can_move = list()
-        if self.current_cell:
+        if self.current_cell_coords:
             where_can_move = self.get_where_can_move()
 
         for y in range(len(self.field)):
@@ -180,21 +168,29 @@ class Field:
         self.get_cell(pos1).set_unit(self.get_cell(pos).get_unit())
         self.get_cell(pos).set_unit(None)
 
-    def get_cell(self, pos: tuple[int, int]):
+    def get_cell(self, pos: tuple[int, int]) -> Cell or None:
         return self.field[pos[1]][pos[0]]
 
-    def on_click(self):
+    def is_pos_in_field(self, pos: tuple[int, int]) -> bool:
+        if 0 <= pos[0] <= len(self.field[0]) - 1 \
+                and 0 <= pos[1] <= len(self.field) - 1:
+            return True
+        return False
+
+    def on_click(self) -> None:
         mouse_pos = self.get_coords(pygame.mouse.get_pos())
 
-        if self.current_cell and mouse_pos in self.get_where_can_move():
-            self.move_unit(self.current_cell, mouse_pos)
-            self.current_cell = None
+        if self.current_cell_coords and mouse_pos in self.get_where_can_move():
+            self.move_unit(self.current_cell_coords, mouse_pos)
+            self.current_cell_coords = None
             return
 
         if mouse_pos != -1 and self.get_cell(mouse_pos).unit is not None:
-            self.current_cell = mouse_pos
+            self.current_cell_coords = mouse_pos
+            print('Current cell coords are ', mouse_pos)
         else:
-            self.current_cell = None
+            self.current_cell_coords = None
+            print('Current cell coords are None')
 
         print(mouse_pos)
 
