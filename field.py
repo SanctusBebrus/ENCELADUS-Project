@@ -1,3 +1,5 @@
+import sys
+
 import pygame
 
 import random
@@ -22,7 +24,7 @@ unit2 = units.Hunter(team_2)
 class Cell:
     size = 50
 
-    def __init__(self, team: player.Team, image_path: str = snow_image_path, unit: units.Unit or None = None):
+    def __init__(self, team: player.Team = None, image_path: str = snow_image_path, unit: units.Unit or None = None):
         self.image = pygame.image.load(image_path)
 
         self.alpha_surface = pygame.surface.Surface((Cell.size, Cell.size), pygame.SRCALPHA)
@@ -126,18 +128,26 @@ class Field:
 
     def get_where_can_move(self):
         where_can_move = list()
-        other_cells = list()
 
         current_cell = self.get_cell(self.current_cell_coords)
-        disntance = (current_cell.get_unit().distance - 1) // 2
 
-        x_range = list(range(self.current_cell_coords[0] - disntance, self.current_cell_coords[0] + disntance + 1))
-        y_range = list(range(self.current_cell_coords[1] - disntance, self.current_cell_coords[1] + disntance + 1))
-        for y in y_range:
-            for x in x_range:
-                where_can_move.append((x, y))
+        distance = (current_cell.get_unit().distance - 1) // 2
 
-        print(other_cells)
+        x_range = list(range(self.current_cell_coords[0] - distance, self.current_cell_coords[0] + distance + 1))
+        y_range = list(range(self.current_cell_coords[1] - distance, self.current_cell_coords[1] + distance + 1))
+
+        def get_need_cells(x, y):
+            for x1, y1 in ([x - 1, y], [x, y - 1], [x + 1, y], [x, y + 1]):
+                if current_cell.get_team() is self.get_cell((x1, y1)).get_team():
+                    if (x1, y1) not in where_can_move:
+                        if not (x1 in x_range and y1 in y_range):
+                            return
+
+                        where_can_move.append((x1, y1))
+                        get_need_cells(x1, y1)
+
+        get_need_cells(self.current_cell_coords[0], self.current_cell_coords[1])
+
         return where_can_move
 
     def draw(self) -> None:
@@ -155,13 +165,18 @@ class Field:
                 self.field[y][x].draw(self.surface, (rect.x, rect.y), alpha=100 if (x, y) in where_can_move else 15)
 
     def move_unit(self, pos: tuple[int, int], pos1: tuple[int, int]):
-        self.get_cell(pos1).set_unit(self.get_cell(pos).get_unit())
-        self.get_cell(pos).set_unit(None)
+        if pos != pos1:
+            self.get_cell(pos1).set_unit(self.get_cell(pos).get_unit())
+
+            self.get_cell(pos).set_unit(None)
 
     def get_cell(self, pos: tuple[int, int]) -> Cell or None:
-        return self.field[pos[1]][pos[0]]
+        if self.is_pos_in_field(pos):
+            cell = self.field[pos[1]][pos[0]]
+            return cell
+        return Cell()
 
-    def is_pos_in_field(self, pos: tuple[int, int]) -> bool:
+    def is_pos_in_field(self, pos: tuple[int, int]) -> Cell or bool:
         if 0 <= pos[0] <= len(self.field[0]) - 1 \
                 and 0 <= pos[1] <= len(self.field) - 1:
             return True

@@ -3,7 +3,6 @@ import settings
 
 path = 'sprites/units/'
 
-
 class Unit:
     def __init__(self, team):
         self.image = None
@@ -130,7 +129,7 @@ class Hunter(Unit):
         self.maintenance = 15
         self.default_defence = 3
         self.is_dead = False
-        self.distance = 6
+        self.distance = 4
 
     def resize(self):
         return pygame.transform.scale(self.image, (settings.cell_size - 10, settings.cell_size - 10))
