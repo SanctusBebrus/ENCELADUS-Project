@@ -135,17 +135,7 @@ class Field:
         y_range = list(range(self.current_cell_coords[1] - disntance, self.current_cell_coords[1] + disntance + 1))
         for y in y_range:
             for x in x_range:
-                cell = self.get_cell((x, y))
-                if cell.get_team() != current_cell.get_team():
-                    continue
-
-                for x1 in [-1, 0, 1]:
-                    for y1 in [-1, 0, 1]:
-                        if abs(x1) == abs(y1):
-                            continue
-
-                        if (x + x1) in x_range and (y + y1) in y_range:
-                            where_can_move.append((x + x1, y + y1))
+                where_can_move.append((x, y))
 
         print(other_cells)
         return where_can_move
