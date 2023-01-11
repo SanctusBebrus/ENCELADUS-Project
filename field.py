@@ -68,7 +68,7 @@ class Cell:
 
 class Field:
     default_field = list(
-        map(lambda y: list(map(lambda x: Cell(random.choice([team_1, team_2])), range(15))), range(25)))
+        map(lambda y: list(map(lambda x: Cell(random.choice([team_1])), range(15))), range(25)))
     default_field[0][0].set_unit(unit1)
     default_field[7][5].set_unit(unit2)
 
@@ -139,12 +139,11 @@ class Field:
         def get_need_cells(x, y):
             for x1, y1 in ([x - 1, y], [x, y - 1], [x + 1, y], [x, y + 1]):
                 if current_cell.get_team() is self.get_cell((x1, y1)).get_team():
-                    if (x1, y1) not in where_can_move:
-                        if not (x1 in x_range and y1 in y_range):
-                            return
-
+                    if (x1, y1) not in where_can_move and x1 in x_range and y1 in y_range:
                         where_can_move.append((x1, y1))
                         get_need_cells(x1, y1)
+                elif x1 in x_range and y1 in y_range:
+                    where_can_move.append((x1, y1))
 
         get_need_cells(self.current_cell_coords[0], self.current_cell_coords[1])
 

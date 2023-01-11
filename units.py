@@ -3,6 +3,7 @@ import settings
 
 path = 'sprites/units/'
 
+
 class Unit:
     def __init__(self, team):
         self.image = None
