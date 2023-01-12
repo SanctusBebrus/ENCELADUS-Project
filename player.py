@@ -11,5 +11,8 @@ class Player:
         self.team = team
         self.money = 0
 
+    def get_team(self) -> Team:
+        return self.team
+
     def get_player_team_color(self) -> tuple[int, int, int]:
         return self.team.color
