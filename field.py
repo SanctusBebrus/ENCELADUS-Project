@@ -72,7 +72,7 @@ class Field:
     default_field[0][0].set_unit(unit1)
     default_field[7][5].set_unit(unit2)
 
-    def __init__(self, field: list[list[Cell]] = default_field,
+    def __init__(self, player_list: list[player.Player], field: list[list[Cell]] = default_field,
                  scroll_speed=4):
         self.current_cell_coords = None
 
@@ -80,6 +80,9 @@ class Field:
         self.coords = self.x, self.y = (0, 0)
         self.scroll_speed = scroll_speed
         self.can_get_rel = False
+
+        self.player_list = player_list
+        self.current_player = 0
 
         self.max_rect_size = 100
         self.min_rect_size = 25
@@ -164,10 +167,15 @@ class Field:
                 self.field[y][x].draw(self.surface, (rect.x, rect.y), alpha=100 if (x, y) in where_can_move else 15)
 
     def move_unit(self, pos: tuple[int, int], pos1: tuple[int, int]):
-        if pos != pos1:
-            self.get_cell(pos1).set_unit(self.get_cell(pos).get_unit())
+        if self.get_cell(pos).get_team() is self.get_cell(pos1).get_team()\
+                and self.get_cell(pos1).get_unit():
+            return
 
-            self.get_cell(pos).set_unit(None)
+        self.get_cell(pos1).set_unit(self.get_cell(pos).get_unit())
+        self.get_cell(pos).set_unit(None)
+
+        self.current_player += 1
+        self.current_player %= len(self.player_list)
 
     def get_cell(self, pos: tuple[int, int]) -> Cell or None:
         if self.is_pos_in_field(pos):
@@ -190,13 +198,10 @@ class Field:
             return
 
         if mouse_pos != -1 and self.get_cell(mouse_pos).unit is not None:
-            self.current_cell_coords = mouse_pos
-            print('Current cell coords are ', mouse_pos)
+            if self.player_list[self.current_player].get_team() is self.get_cell(mouse_pos).get_team():
+                self.current_cell_coords = mouse_pos
         else:
             self.current_cell_coords = None
-            print('Current cell coords are None')
-
-        print(mouse_pos)
 
     def get_coords(self, coords: tuple[int, int]) -> tuple[int, int] or str:
         coords = ((coords[0] - self.x) // settings.cell_size,
