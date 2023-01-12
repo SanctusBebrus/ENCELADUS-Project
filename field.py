@@ -85,7 +85,7 @@ class Field:
         self.current_player = 0
 
         self.max_rect_size = 100
-        self.min_rect_size = 25
+        self.min_rect_size = 31
 
         self.surface = pygame.surface.Surface((len(field[0]) * self.max_rect_size,
                                                len(field) * self.max_rect_size))
@@ -119,6 +119,11 @@ class Field:
             if event.type == pygame.MOUSEBUTTONUP:
                 if not pygame.mouse.get_pressed()[2]:
                     self.can_get_rel = False
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.current_player += 1
+                    self.current_player %= len(self.player_list)
 
     def zoom(self, px: int) -> None:
         if self.min_rect_size < settings.cell_size + px < self.max_rect_size:
@@ -163,19 +168,22 @@ class Field:
             for x in range(len(self.field[0])):
                 rect = pygame.Rect(x * settings.cell_size, y * settings.cell_size, settings.cell_size,
                                    settings.cell_size)
+                if (x, y) in where_can_move or self.get_cell(
+                        (x, y)).unit and self.get_cell(
+                    (x, y)).get_team() is self.player_list[self.current_player].get_team():
+                    alpha = 100
+                else:
+                    alpha = 30
 
-                self.field[y][x].draw(self.surface, (rect.x, rect.y), alpha=100 if (x, y) in where_can_move else 15)
+                self.field[y][x].draw(self.surface, (rect.x, rect.y), alpha=alpha)
 
     def move_unit(self, pos: tuple[int, int], pos1: tuple[int, int]):
-        if self.get_cell(pos).get_team() is self.get_cell(pos1).get_team()\
+        if self.get_cell(pos).get_team() is self.get_cell(pos1).get_team() \
                 and self.get_cell(pos1).get_unit():
             return
 
         self.get_cell(pos1).set_unit(self.get_cell(pos).get_unit())
         self.get_cell(pos).set_unit(None)
-
-        self.current_player += 1
-        self.current_player %= len(self.player_list)
 
     def get_cell(self, pos: tuple[int, int]) -> Cell or None:
         if self.is_pos_in_field(pos):
