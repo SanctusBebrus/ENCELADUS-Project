@@ -6,6 +6,7 @@ import random
 import settings
 import units
 import player
+from itertools import product
 
 snow_image_path = 'sprites/cell/snow.png'
 stone_image_path = 'sprites/cell/stone.png'
@@ -167,22 +168,20 @@ class Field:
         if self.current_cell_coords:
             where_can_move = self.get_where_can_move()
 
-        for y in range(len(self.field)):
-            for x in range(len(self.field[0])):
-                rect = pygame.Rect(x * settings.cell_size, y * settings.cell_size, settings.cell_size,
-                                   settings.cell_size)
-                if (x, y) in where_can_move or self.get_cell(
-                        (x, y)).unit and self.get_cell(
-                    (x, y)).get_team() is self.player_list[self.current_player].get_team() and not self.get_cell(
-                    (x, y)).unit.already_moved:
-                    alpha = 100
-                else:
-                    alpha = 30
+        for y, x in product(range(len(self.field)), range(len(self.field[0]))):
+            rect = pygame.Rect(x * settings.cell_size, y * settings.cell_size, settings.cell_size,
+                               settings.cell_size)
+            if (x, y) in where_can_move or self.get_cell(
+                    (x, y)).unit and self.get_cell(
+                (x, y)).get_team() is self.player_list[self.current_player].get_team() and \
+                    not self.get_cell((x, y)).unit.already_moved:
+                alpha = 100
+            else:
+                alpha = 30
 
-                self.field[y][x].draw(self.surface, (rect.x, rect.y), alpha=alpha)
+            self.field[y][x].draw(self.surface, (rect.x, rect.y), alpha=alpha)
 
     def move_unit(self, pos: tuple[int, int], pos1: tuple[int, int]):
-
         if self.get_cell(pos).get_team() is self.get_cell(pos1).get_team() \
                 and self.get_cell(pos1).get_unit() or self.get_cell(pos).get_unit().already_moved:
             return
