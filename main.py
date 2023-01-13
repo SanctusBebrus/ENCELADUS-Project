@@ -3,22 +3,30 @@ from level import default_field, y_player, g_player, r_player, b_player
 
 from settings import WINDOW_SIZE, CAPTION
 from field import Field, Cell
+from ui import start_screen, ButtonsController, pause
 
 pygame.init()
 
-screen = pygame.display.set_mode(WINDOW_SIZE)
-pygame.display.set_caption(CAPTION)
+if __name__ == '__main__':
+    screen = pygame.display.set_mode(WINDOW_SIZE)
+    pygame.display.set_caption(CAPTION)
 
-field = Field([y_player, g_player, r_player, b_player], default_field)
+    start_screen(screen)
 
-while True:
-    screen.fill((0, 0, 0))
-    events = pygame.event.get()
+    field = Field([y_player, g_player, r_player, b_player], default_field)
+    buttons_controller = ButtonsController(screen, field)
 
-    for e in events:
-        if e.type == pygame.QUIT:
-            pygame.quit()
+    while True:
+        screen.fill((0, 0, 0))
+        events = pygame.event.get()
 
-    field.update(screen, events)
+        for e in events:
+            if e.type == pygame.QUIT:
+                pygame.quit()
+            elif e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
+                pause(screen)
 
-    pygame.display.update()
+        field.update(screen, events)
+        buttons_controller.update(events)
+
+        pygame.display.update()
