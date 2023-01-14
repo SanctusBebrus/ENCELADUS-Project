@@ -9,7 +9,9 @@ class Team:
 class Player:
     def __init__(self, team: Team) -> None:
         self.team = team
-        self.money = 0
+        self.money = 100
+        self.player_profit = 0
+        self.base_is_alive = True
 
     def get_team(self) -> Team:
         return self.team
