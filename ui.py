@@ -1,7 +1,10 @@
 import sys
 
 import pygame
+
+import field
 from settings import WINDOW_SIZE
+from units import *
 from sound import path
 
 WIDTH, HEIGHT = WINDOW_SIZE
@@ -74,9 +77,10 @@ def pause(screen):
 
 
 class Button:
-    def __init__(self, screen, text: str, pos: tuple, width: int, height: int, font=20):
+    def __init__(self, screen, text: str, pos: tuple, width: int, height: int, field, font=20):
         self.text = text
         self.pos = pos
+        self.field = field
         self.screen = screen
         self.width, self.height = width, height
         self.font = pygame.font.Font(None, font)
@@ -98,8 +102,8 @@ class Button:
 
 
 class ButtonWithCost(Button):
-    def __init__(self, screen, text: str, pos: tuple, width: int, height: int, font=20):
-        super(ButtonWithCost, self).__init__(screen, text, pos, width, height)
+    def __init__(self, screen, text: str, pos: tuple, width: int, height: int, field, font=20):
+        super(ButtonWithCost, self).__init__(screen, text, pos, width, height, field)
 
     def draw(self, cost=None):
         pygame.draw.rect(self.screen, 'light gray', self.button, 0, 5)
@@ -112,77 +116,77 @@ class ButtonWithCost(Button):
 
 
 class InfoLabel(Button):
-    def __init__(self, screen, text: str, pos: tuple, width: int, height: int, font=20):
-        super(InfoLabel, self).__init__(screen, text, pos, width, height)
+    def __init__(self, screen, text: str, pos: tuple, width: int, height: int, field, font=20):
+        super(InfoLabel, self).__init__(screen, text, pos, width, height, field)
 
     def draw(self, parameter=None):
         pygame.draw.rect(self.screen, 'light gray', self.button, 0, 5)
         pygame.draw.rect(self.screen, 'dark gray', [self.pos[0], self.pos[1], self.width, self.height], 5, 5)
         text2 = self.font.render(self.text, True, 'black')
         self.screen.blit(text2, (self.pos[0] + 7, self.pos[1] + 7))
-        if parameter != None:
+        if parameter:
             self.screen.blit(pygame.font.Font(None, 20).render(f'{parameter}', True, 'black'),
                              (self.pos[0] + 7, self.pos[1] + 20))
 
 
 # тут магазин юнитов
 class UnitsShop(Button):
-    def __init__(self, screen, text: str, pos: tuple, width: int, height: int, font=20):
-        super(UnitsShop, self).__init__(screen, text, pos, width, height)
+    def __init__(self, screen, text: str, pos: tuple, width: int, height: int, field, font=20):
+        super(UnitsShop, self).__init__(screen, text, pos, width, height, field)
 
     def open_shop(self, events):
         btn_rover = ButtonWithCost(self.screen, 'Rover', (self.pos[0] + self.width, self.pos[1]), self.width,
-                                   self.height)
+                                   self.height, self.field)
         btn_rhino = ButtonWithCost(self.screen, 'Rhino', (self.pos[0] + self.width * 2, self.pos[1]), self.width,
-                                   self.height)
+                                   self.height, self.field)
         btn_hunter = ButtonWithCost(self.screen, 'Hunter', (self.pos[0] + self.width * 3, self.pos[1]), self.width,
-                                    self.height)
+                                    self.height, self.field)
         btn_devastator = ButtonWithCost(self.screen, 'Devastator', (self.pos[0] + self.width * 4, self.pos[1]),
-                                        self.width, self.height, font=17)
+                                        self.width, self.height, self.field, font=17)
 
-        btn_rover.draw(cost=100)
-        btn_rhino.draw(cost=100)
-        btn_hunter.draw(cost=100)
-        btn_devastator.draw(cost=100)
+        btn_rover.draw(cost=15)
+        btn_rhino.draw(cost=25)
+        btn_hunter.draw(cost=35)
+        btn_devastator.draw(cost=45)
 
         # место для функции покупки юнита Rover
         if btn_rover.check_clicked(events):
-            pass
+            self.field.buy_unit(Rover, 15)
 
         # место для функции покупки юнита Rhino
         if btn_rhino.check_clicked(events):
-            pass
+            self.field.buy_unit(Rhino, 25)
 
         # место для функции покупки юнита Hunter
         if btn_hunter.check_clicked(events):
-            pass
+            self.field.buy_unit(Hunter, 35)
 
         # место для функции покупки юнита Devastator
         if btn_devastator.check_clicked(events):
-            pass
+            self.field.buy_unit(Devastator, 45)
 
 
 # тут магазин зданий
 class TowersShop(Button):
-    def __init__(self, screen, text: str, pos: tuple, width: int, height: int, font=20):
-        super(TowersShop, self).__init__(screen, text, pos, width, height)
+    def __init__(self, screen, text: str, pos: tuple, width: int, height: int, field, font=20):
+        super(TowersShop, self).__init__(screen, text, pos, width, height, field)
 
     def open_shop(self, events):
         btn_tower = ButtonWithCost(self.screen, 'Tower', (self.pos[0] + self.width, self.pos[1]), self.width,
-                                   self.height)
+                                   self.height, self.field)
         btn_mine = ButtonWithCost(self.screen, 'Mine', (self.pos[0] + self.width * 2, self.pos[1]), self.width,
-                                  self.height)
+                                  self.height, self.field)
 
         # место для функции покупки здания Tower
         if btn_tower.check_clicked(events):
-            pass
+            self.field.buy_unit(Tower, 25)
 
         # место для функции покупки здания Mine
         if btn_mine.check_clicked(events):
-            pass
+            self.field.buy_unit(Mine, 60)
 
-        btn_tower.draw(cost=100)
-        btn_mine.draw(cost=100)
+        btn_tower.draw(cost=25)
+        btn_mine.draw(cost=60)
 
 
 # Контроллер кнопок
@@ -194,15 +198,18 @@ class ButtonsController:
         self.units_shop_opened = False
         self.building_shop_opened = False
 
-        self.btn_units = UnitsShop(self.screen, 'Units', (0, int(HEIGHT * 0.75)), WIDTH // 10, WIDTH // 10)
+        self.btn_units = UnitsShop(self.screen, 'Units', (0, int(HEIGHT * 0.75)), WIDTH // 10, WIDTH // 10, self.field)
         self.btn_buildings = TowersShop(self.screen, 'Buildings', (0, int(HEIGHT * 0.88)), WIDTH // 10,
-                                        WIDTH // 10, font=10)
+                                        WIDTH // 10, self.field, font=10)
 
-        self.resources_info = InfoLabel(self.screen, 'Money', (0, 0), WIDTH // 9, WIDTH // 14)
-        self.current_player_info = InfoLabel(self.screen, 'Player', (WIDTH // 9, 0), WIDTH // 9, WIDTH // 14)
+        self.resources_info = InfoLabel(self.screen, 'Money', (0, 0), WIDTH // 9, WIDTH // 14, self.field)
+        self.current_player_info = InfoLabel(self.screen, 'Player', (WIDTH // 9, 0), WIDTH // 9, WIDTH // 14,
+                                             self.field)
 
-        self.next_turn_btn = Button(self.screen, 'Next turn', (WIDTH // 9 + WIDTH // 9, 0), WIDTH // 9, WIDTH // 14)
-        self.pause_btn = Button(self.screen, 'Pause', (WIDTH // 9 + WIDTH // 9 * 2, 0), WIDTH // 9, WIDTH // 14)
+        self.next_turn_btn = Button(self.screen, 'Next turn', (WIDTH // 9 + WIDTH // 9, 0), WIDTH // 9, WIDTH // 14,
+                                    self.field)
+        self.pause_btn = Button(self.screen, 'Pause', (WIDTH // 9 + WIDTH // 9 * 2, 0), WIDTH // 9, WIDTH // 14,
+                                self.field)
 
     def update(self, events):
         self.btn_units.draw()
