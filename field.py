@@ -33,6 +33,7 @@ class Cell:
 
         self.team = team
         self.unit = unit
+        self.profit = 1
         self.defence_level = 0
 
     def draw(self, surface: pygame.surface.Surface, pos: tuple[int, int], alpha=20) -> None:
@@ -81,6 +82,7 @@ class Field:
 
         self.player_list = player_list
         self.current_player = 0
+        self.live_units = []
 
         self.max_rect_size = 100
         self.min_rect_size = 31
@@ -121,8 +123,83 @@ class Field:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     self.make_new_turn()
+                    self.check_units()
+                    self.check_base_status()
+                    self.count_money()
+                    self.check_players()
                     self.current_player += 1
                     self.current_player %= len(self.player_list)
+
+    def buy_unit(self, unit, unit_cost):
+        print(self.player_list[self.current_player].base_is_alive)
+        if self.player_list[self.current_player].base_is_alive:
+            try:
+                mouse_pos = self.get_coords(pygame.mouse.get_pos())
+                if self.get_cell(mouse_pos).get_team() != self.player_list[self.current_player].get_team() \
+                        and self.get_cell(mouse_pos).get_unit():
+                    return
+                if not self.get_cell(mouse_pos).get_unit() and self.get_cell(mouse_pos).get_team() == \
+                        self.player_list[self.current_player].get_team() \
+                        and self.player_list[self.current_player].money >= unit_cost:
+                    self.get_cell(mouse_pos).set_unit(
+                        unit(
+                            self.player_list[self.current_player].get_team()
+                        )
+                    )
+                    self.player_list[self.current_player].money -= unit_cost
+            except Exception:
+                pass
+
+    def check_players(self):
+        if not self.player_list[self.current_player].base_is_alive and self.player_list[self.current_player].money < 0:
+            self.player_list.remove(self.player_list[self.current_player])
+
+    def check_units(self):
+        self.live_units = []
+        for i in self.field:
+            for j in i:
+                if j.get_unit() and j.get_unit().get_team() == self.player_list[self.current_player].get_team() \
+                        and not j.get_unit().is_building:
+                    self.live_units.append(j.get_unit())
+        print(*self.live_units)
+
+    def check_base_status(self):
+        for i in self.field:
+            for j in i:
+                if not (j.get_unit()
+                        and j.get_unit().get_team() == self.player_list[self.current_player].get_team()
+                        and j.get_unit().is_building and j.get_unit().is_base):
+                    continue
+                else:
+                    self.player_list[self.current_player].base_is_alive = True
+                    return
+        self.player_list[self.current_player].base_is_alive = False
+        return
+
+    def kill_all(self):
+        for i in self.field:
+            for j in i:
+                if (j.get_unit()
+                        and j.get_unit().get_team() == self.player_list[self.current_player].get_team() \
+                        and not j.get_unit().is_building
+                        and self.player_list[self.current_player].money < 0):
+                    j.set_unit(None)
+                    self.live_units = []
+
+    def count_money(self):
+        if self.live_units:
+            for unit in self.live_units:
+                self.player_list[self.current_player].money -= unit.maintenance
+
+        for i in self.field:
+            for j in i:
+                if not j.get_unit() and j.get_team() == self.player_list[self.current_player].get_team() \
+                        and self.player_list[self.current_player].base_is_alive:
+                    self.player_list[self.current_player].money += j.profit
+                elif j.get_unit() and j.get_team() == self.player_list[self.current_player].get_team() \
+                        and self.player_list[self.current_player].base_is_alive:
+                    self.player_list[self.current_player].money += j.get_unit().profit
+        self.kill_all()
 
     def make_new_turn(self):
         for i in self.field:
@@ -189,6 +266,7 @@ class Field:
             self.get_cell(pos1).get_unit().default_defence < self.get_cell(pos).get_unit().default_defence) or \
                 not self.get_cell(pos1).get_unit() or self.get_cell(pos).get_unit().default_defence == 4:
             self.get_cell(pos).get_unit().get_sound()
+            self.get_cell(pos).get_unit().sound_effect.play()
             self.get_cell(pos).get_unit().sound.play()
             self.get_cell(pos1).set_unit(self.get_cell(pos).get_unit())
             self.get_cell(pos1).get_unit().already_moved = True
