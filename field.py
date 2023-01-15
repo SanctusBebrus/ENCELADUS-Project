@@ -4,6 +4,7 @@ import pygame
 
 import random
 import settings
+import sound
 import units
 import player
 from itertools import product
@@ -108,7 +109,6 @@ class Field:
         self.coords = self.x, self.y = (0, 0)
         self.scroll_speed = scroll_speed
         self.can_get_rel = False
-
         self.player_list = player_list
         self.current_player = 0
         self.live_units = []
@@ -346,7 +346,9 @@ class Field:
             self.get_cell(pos1).get_unit().default_defence < self.get_cell(pos).get_unit().default_defence) or \
                 not self.get_cell(pos1).get_unit() or self.get_cell(pos).get_unit().default_defence == 4:
             self.get_cell(pos).get_unit().get_sound()
+            self.get_cell(pos).get_unit().sound_effect.set_volume(0.15)
             self.get_cell(pos).get_unit().sound_effect.play()
+            self.get_cell(pos).get_unit().sound.set_volume(0.25)
             self.get_cell(pos).get_unit().sound.play()
             self.get_cell(pos1).set_unit(self.get_cell(pos).get_unit())
             self.get_cell(pos1).get_unit().already_moved = True
