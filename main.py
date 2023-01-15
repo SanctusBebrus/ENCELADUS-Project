@@ -3,6 +3,7 @@ from level import default_field, y_player, g_player, r_player, b_player
 
 from settings import WINDOW_SIZE, CAPTION
 from field import Field, Cell
+from itertools import cycle
 from ui import start_screen, ButtonsController, pause
 import sound
 
@@ -19,9 +20,10 @@ if __name__ == '__main__':
     field = Field([y_player, g_player, r_player, b_player], default_field)
     buttons_controller = ButtonsController(screen, field)
     playlist = sound.stage_one_playlist
-
+    wind = sound.wind.play(-1)
+    wind.set_volume(0.8)
     pygame.mixer.music.load(playlist.pop())  # Get the first track from the playlist
-    pygame.mixer.music.set_volume(0.2)
+    pygame.mixer.music.set_volume(0.3)
     pygame.mixer.music.queue(playlist.pop())  # Queue the 2nd song
     pygame.mixer.music.set_endevent(pygame.USEREVENT)  # Se tup the end track event
     pygame.mixer.music.play()
