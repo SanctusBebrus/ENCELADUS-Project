@@ -36,6 +36,8 @@ class Sound:
         self.rover_4 = pygame.mixer.Sound(path + 'rover_4.wav')
         self.rover_5 = pygame.mixer.Sound(path + 'rover_5.wav')
 
+        self.wind = pygame.mixer.Sound(path + 'wind.mp3')
+
         self.stage_one_playlist = list()
         self.stage_one_playlist.append(path + 'playlist/battle_11.mp3')
         self.stage_one_playlist.append(path + 'playlist/battle_10.mp3')
