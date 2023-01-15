@@ -215,7 +215,8 @@ class ButtonsController:
         self.btn_units.draw()
         self.btn_buildings.draw()
 
-        self.resources_info.draw(parameter=self.field.player_list[self.field.current_player].money)
+        self.resources_info.draw(parameter=f'{self.field.player_list[self.field.current_player].money}'
+                                           f' {self.field.player_list[self.field.current_player].player_profit}')
         self.current_player_info.draw(parameter=self.field.current_player + 1)
 
         self.next_turn_btn.draw()
