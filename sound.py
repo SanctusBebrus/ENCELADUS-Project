@@ -48,3 +48,5 @@ class Sound:
         self.stage_one_playlist.append(path + 'playlist/battle_3.mp3')
         self.stage_one_playlist.append(path + 'playlist/battle_2.mp3')
         self.stage_one_playlist.append(path + 'playlist/battle_1.mp3')
+        self.stage_one_playlist.append(path + 'playlist/a_1.mp3')
+        self.stage_one_playlist.append(path + 'playlist/a_0.mp3')
