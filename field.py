@@ -142,6 +142,10 @@ class Field:
         surface.blit(self.surface, self.coords)
 
     def calculate_defence(self):
+        for row in self.field:
+            for cell in row:
+                cell.set_defence_level(0)
+
         for y in range(len(self.field)):
             for x in range(len(self.field[0])):
                 if not self.get_cell((x, y)).get_unit():
@@ -370,8 +374,10 @@ class Field:
 
     def move_unit(self, pos: tuple[int, int], pos1: tuple[int, int]):
         if (self.get_cell(pos).get_team() is self.get_cell(pos1).get_team()
-            and self.get_cell(pos1).get_unit() or self.get_cell(pos).get_unit().already_moved) \
-                or self.get_cell(pos1).defence_level > 5:
+            and self.get_cell(pos1).get_unit()) \
+                or self.get_cell(pos1).defence_level > 5 or self.get_cell(pos).unit.already_moved \
+                or self.get_cell(pos).get_defence_level() <= self.get_cell(pos1).get_defence_level() and self.get_cell(
+            pos).get_defence_level() != 4:
             return
 
         if (self.get_cell(pos1).get_unit() and
