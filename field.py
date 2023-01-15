@@ -282,7 +282,7 @@ class Field:
                         and self.player_list[self.current_player].money < 0):
                     j.set_unit(None)
                     self.live_units = []
-                    
+
     def count_money(self):
         total = 0
         if self.live_units:
