@@ -196,24 +196,21 @@ class Field:
                     self.find_base()
 
     def find_base(self):
-        team = self.player_list[self.current_player].get_team()
-        base_yellow = (0, LENGTH - 1)
-        base_green = (0, 0)
-        base_blue = (LENGTH - 1, LENGTH - 1)
-        base_red = (LENGTH - 1, 0)
-        base_list = [base_yellow, base_green, base_blue, base_red]
+        x_min = 100
+        x_max = 0
+        y_min = 100
+        y_max = 0
 
-        for base in base_list:
-            if self.field[base[0]][base[1]].get_team() is team and \
-                    isinstance(self.field[base[0]][base[1]].get_unit(), units.Base):
-                if base == base_green:
-                    self.coords = self.x, self.y = LENGTH * 10, LENGTH * 4
-                if base == base_yellow:
-                    self.coords = self.x, self.y = -LENGTH * 15, LENGTH * 4
-                if base == base_red:
-                    self.coords = self.x, self.y = LENGTH * 16, -LENGTH * 45
-                if base == base_blue:
-                    self.coords = self.x, self.y = -LENGTH * 16, -LENGTH * 45
+        for y in range(len(self.field)):
+            for x in range(len(self.field[0])):
+                if self.get_cell((x, y)).get_team() is self.player_list[self.current_player].get_team():
+                    x_min = min(x_min, x)
+                    x_max = max(x_max, x)
+                    y_min = min(y_min, y)
+                    y_max = max(y_max, y)
+
+        self.coords = self.x, self.y = settings.WINDOW_WIDTH // 2 - (x_min + x_max) // 2 * settings.cell_size, \
+                                       settings.WINDOW_HEIGHT // 2 - (y_min + y_max) // 2 * settings.cell_size,
 
     def find_mines(self):
         mines = 0
