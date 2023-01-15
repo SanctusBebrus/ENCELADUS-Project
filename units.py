@@ -74,14 +74,15 @@ class Mine(Unit):
         self.default_defence = 0
         self.distance = 0
         self.life_period = 0
-        self.profit = 25
+        self.profit = 15
         self.is_dead = False
 
     def get_money(self):
         return self.profit
 
     def resize(self):
-        return pygame.transform.scale(self.image, (settings.cell_size + 186, settings.cell_size + 120))
+        return pygame.transform.scale(self.image, (settings.cell_size + settings.cell_size * 0.75,
+                                                   settings.cell_size + settings.cell_size * 0.4))
 
 
 class Base(Unit):
@@ -89,22 +90,22 @@ class Base(Unit):
         super(Base, self).__init__(team)
         self.image = pygame.image.load(path + 'base_sprt.png')
         self.default_defence = 2
-        self.profit = 10
+        self.profit = 8
         self.is_base = True
         self.is_building = True
         self.is_dead = False
 
     def resize(self):
-        return pygame.transform.scale(self.image, (settings.cell_size + 50, settings.cell_size + 20))
+        return pygame.transform.scale(self.image, (settings.cell_size + 10, settings.cell_size))
 
 
 class Tower(Unit):
     def __init__(self, team):
         super(Tower, self).__init__(team)
         self.image = pygame.image.load(path + 'tower_sprt.png')
-        self.cost = 25
+        self.cost = 35
         self.is_building = True
-        self.maintenance = 10
+        self.maintenance = 20
         self.default_defence = 2
         self.is_dead = False
 
@@ -148,7 +149,7 @@ class Rhino(Unit):
         self.image = pygame.image.load(path + 'rhino_sprite.png')
         self.cost = 25
         self.is_building = False
-        self.maintenance = 15
+        self.maintenance = 20
         self.default_defence = 2
         self.is_dead = False
         self.distance = 3
@@ -172,7 +173,7 @@ class Hunter(Unit):
         self.image = pygame.image.load(path + 'hunter.png')
         self.cost = 35
         self.is_building = False
-        self.maintenance = 20
+        self.maintenance = 25
         self.default_defence = 3
         self.is_dead = False
         self.distance = 4
@@ -196,7 +197,7 @@ class Devastator(Unit):
         self.image = pygame.image.load(path + 'devastator.png')
         self.cost = 45
         self.is_building = False
-        self.maintenance = 25
+        self.maintenance = 35
         self.default_defence = 4
         self.is_dead = False
         self.distance = 3
