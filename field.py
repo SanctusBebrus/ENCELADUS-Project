@@ -233,7 +233,7 @@ class Field:
                 mouse_pos = self.get_coords(pygame.mouse.get_pos())
                 if self.get_cell(mouse_pos).get_team() != self.player_list[self.current_player].get_team() \
                         and self.get_cell(mouse_pos).get_unit():
-                    return
+                    return False
                 if not self.get_cell(mouse_pos).get_unit() and self.get_cell(mouse_pos).get_team() == \
                         self.player_list[self.current_player].get_team() \
                         and self.player_list[self.current_player].money >= unit_cost:
@@ -243,8 +243,9 @@ class Field:
                         )
                     )
                     self.player_list[self.current_player].money -= unit_cost
+                    return True
             except Exception:
-                pass
+                return False
 
     def check_players(self):
         if not self.player_list[self.current_player].base_is_alive and self.player_list[self.current_player].money < 0:
