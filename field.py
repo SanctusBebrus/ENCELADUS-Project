@@ -382,9 +382,9 @@ class Field:
                 not self.get_cell(pos1).get_unit() or self.get_cell(pos).get_unit().default_defence == 4 \
                 or self.get_cell(pos).get_team() is self.get_cell(pos1).get_team():
             self.get_cell(pos).get_unit().get_sound()
-            self.get_cell(pos).get_unit().sound_effect.set_volume(0.15)
+            self.get_cell(pos).get_unit().sound_effect.set_volume(0.3)
             self.get_cell(pos).get_unit().sound_effect.play()
-            self.get_cell(pos).get_unit().sound.set_volume(0.25)
+            self.get_cell(pos).get_unit().sound.set_volume(0.4)
             self.get_cell(pos).get_unit().sound.play()
             self.get_cell(pos1).set_unit(self.get_cell(pos).get_unit())
             self.get_cell(pos1).get_unit().already_moved = True
