@@ -9,17 +9,11 @@ import player
 from itertools import product
 
 snow_image_path = 'sprites/cell/snow.png'
-stone_image_path = 'sprites/cell/stone.png'
-grass_image_path = 'sprites/cell/grass.png'
+ice_image_path = 'sprites/cell/ice_rock.png'
+hole_image_path = 'sprites/cell/hole.png'
 
 team_1 = player.Team((255, 0, 0))
-team_2 = player.Team((0, 0, 255))
-
-player_1 = player.Player(team_1)
-player_2 = player.Player(team_2)
-
-unit1 = units.Rover(team_1)
-unit2 = units.Hunter(team_2)
+LENGTH = WIDTH = random.randint(10, 16)
 
 
 class Cell:
@@ -68,9 +62,44 @@ class Cell:
         return self.team
 
 
+class IceCell(Cell):
+    size = 50
+
+    def __init__(self, team: player.Team = None, image_path: str = ice_image_path, unit: units.Unit or None = None):
+        super().__init__(team, image_path, unit)
+        self.image = pygame.image.load(image_path)
+
+        self.alpha_surface = pygame.surface.Surface((Cell.size, Cell.size), pygame.SRCALPHA)
+        self.surface = pygame.surface.Surface((Cell.size, Cell.size), pygame.SRCALPHA)
+
+        self.team = team
+        self.unit = unit
+        self.profit = 0
+        self.defence_level = 500
+
+
+class HoleCell(Cell):
+    size = 50
+
+    def __init__(self, team: player.Team = None, image_path: str = hole_image_path, unit: units.Unit or None = None):
+        super().__init__(team, image_path, unit)
+        self.image = pygame.image.load(image_path)
+
+        self.alpha_surface = pygame.surface.Surface((Cell.size, Cell.size), pygame.SRCALPHA)
+        self.surface = pygame.surface.Surface((Cell.size, Cell.size), pygame.SRCALPHA)
+
+        self.team = team
+        self.unit = unit
+        self.profit = 0
+        self.defence_level = 500
+
+
 class Field:
     default_field = list(
-        map(lambda y: list(map(lambda x: Cell(random.choice([team_1])), range(15))), range(25)))
+        map(lambda y: list(map(lambda x: Cell(random.choice([team_1])), range(LENGTH))), range(WIDTH)))
+
+    for i, j in product(range(LENGTH + 3, LENGTH - 3), range(LENGTH + 3, LENGTH - 3)):
+        default_field[i][j] = IceCell(team_1)
 
     def __init__(self, player_list: list[player.Player], field: list[list[Cell]] = default_field,
                  scroll_speed=4):
@@ -85,7 +114,7 @@ class Field:
         self.live_units = []
 
         self.max_rect_size = 100
-        self.min_rect_size = 31
+        self.min_rect_size = 45
 
         self.surface = pygame.surface.Surface((len(field[0]) * self.max_rect_size,
                                                len(field) * self.max_rect_size))
@@ -129,6 +158,36 @@ class Field:
                     self.check_players()
                     self.current_player += 1
                     self.current_player %= len(self.player_list)
+                    self.find_base()
+
+    def find_base(self):
+        team = self.player_list[self.current_player].get_team()
+        base_yellow = (0, LENGTH - 1)
+        base_green = (0, 0)
+        base_blue = (LENGTH - 1, LENGTH - 1)
+        base_red = (LENGTH - 1, 0)
+        base_list = [base_yellow, base_green, base_blue, base_red]
+
+        for base in base_list:
+            if self.field[base[0]][base[1]].get_team() is team and \
+                    isinstance(self.field[base[0]][base[1]].get_unit(), units.Base):
+                if base == base_green:
+                    self.coords = LENGTH * 10, LENGTH * 4
+                if base == base_yellow:
+                    self.coords = -LENGTH * 15, LENGTH * 4
+                if base == base_red:
+                    self.coords = LENGTH * 16, -LENGTH * 45
+                if base == base_blue:
+                    self.coords = -LENGTH * 16, -LENGTH * 45
+
+    def find_mines(self):
+        mines = 0
+        for i in self.field:
+            for j in i:
+                if isinstance(j.get_unit(), units.Mine) and j.get_unit().get_team() == \
+                        self.player_list[self.current_player].get_team():
+                    mines += 1
+        return mines
 
     def buy_unit(self, unit, unit_cost):
         print(self.player_list[self.current_player].base_is_alive)
@@ -180,7 +239,7 @@ class Field:
         for i in self.field:
             for j in i:
                 if (j.get_unit()
-                        and j.get_unit().get_team() == self.player_list[self.current_player].get_team() \
+                        and j.get_unit().get_team() == self.player_list[self.current_player].get_team()
                         and not j.get_unit().is_building
                         and self.player_list[self.current_player].money < 0):
                     j.set_unit(None)
@@ -259,8 +318,9 @@ class Field:
             self.field[y][x].draw(self.surface, (rect.x, rect.y), alpha=alpha)
 
     def move_unit(self, pos: tuple[int, int], pos1: tuple[int, int]):
-        if self.get_cell(pos).get_team() is self.get_cell(pos1).get_team() \
-                and self.get_cell(pos1).get_unit() or self.get_cell(pos).get_unit().already_moved:
+        if (self.get_cell(pos).get_team() is self.get_cell(pos1).get_team()
+                and self.get_cell(pos1).get_unit() or self.get_cell(pos).get_unit().already_moved) or \
+                self.get_cell(pos1).defence_level > 0:
             return
         if (self.get_cell(pos1).get_unit() and
             self.get_cell(pos1).get_unit().default_defence < self.get_cell(pos).get_unit().default_defence) or \
