@@ -280,20 +280,23 @@ class Field:
                         and self.player_list[self.current_player].money < 0):
                     j.set_unit(None)
                     self.live_units = []
-
+                    
     def count_money(self):
+        total = 0
         if self.live_units:
             for unit in self.live_units:
-                self.player_list[self.current_player].money -= unit.maintenance
+                total -= unit.maintenance
 
         for i in self.field:
             for j in i:
                 if not j.get_unit() and j.get_team() == self.player_list[self.current_player].get_team() \
                         and self.player_list[self.current_player].base_is_alive:
-                    self.player_list[self.current_player].money += j.profit
+                    total += j.profit
                 elif j.get_unit() and j.get_team() == self.player_list[self.current_player].get_team() \
                         and self.player_list[self.current_player].base_is_alive:
-                    self.player_list[self.current_player].money += j.get_unit().profit
+                    total += j.get_unit().profit
+        self.player_list[self.current_player].money += total
+        self.player_list[self.current_player].player_profit = total
         self.kill_all()
 
     def make_new_turn(self):
