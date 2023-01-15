@@ -19,6 +19,7 @@ if __name__ == '__main__':
     field = Field([y_player, g_player, r_player, b_player], default_field)
     buttons_controller = ButtonsController(screen, field)
     playlist = sound.stage_one_playlist
+
     pygame.mixer.music.load(playlist.pop())  # Get the first track from the playlist
     pygame.mixer.music.set_volume(0.2)
     pygame.mixer.music.queue(playlist.pop())  # Queue the 2nd song
