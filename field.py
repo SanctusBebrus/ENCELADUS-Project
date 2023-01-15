@@ -144,7 +144,8 @@ class Field:
     def calculate_defence(self):
         for row in self.field:
             for cell in row:
-                cell.set_defence_level(0)
+                if not any(map(lambda x: True if isinstance(cell, x) else False, [IceCell, HoleCell])):
+                    cell.set_defence_level(0)
 
         for y in range(len(self.field)):
             for x in range(len(self.field[0])):
@@ -373,25 +374,31 @@ class Field:
             self.field[y][x].draw(self.surface, (rect.x, rect.y), alpha=alpha)
 
     def move_unit(self, pos: tuple[int, int], pos1: tuple[int, int]):
-        if (self.get_cell(pos).get_team() is self.get_cell(pos1).get_team()
-            and self.get_cell(pos1).get_unit()) \
-                or self.get_cell(pos1).defence_level > 5 or self.get_cell(pos).unit.already_moved \
-                or self.get_cell(pos).get_defence_level() <= self.get_cell(pos1).get_defence_level() and self.get_cell(
-            pos).get_defence_level() != 4:
+        start_cell = self.get_cell(pos)
+        end_cell = self.get_cell(pos1)
+
+        if start_cell.get_team() is end_cell.get_team():
+            if end_cell.get_unit():
+                return
+        else:
+            if start_cell.get_defence_level() <= end_cell.get_defence_level():
+                if start_cell.get_unit().default_defence != 4:
+                    return
+
+        if end_cell.defence_level > 5:
             return
 
-        if (self.get_cell(pos1).get_unit() and
-            self.get_cell(pos1).get_unit().default_defence < self.get_cell(pos).get_unit().default_defence) or \
-                not self.get_cell(pos1).get_unit() or self.get_cell(pos).get_unit().default_defence == 4 \
-                or self.get_cell(pos).get_team() is self.get_cell(pos1).get_team():
-            self.get_cell(pos).get_unit().get_sound()
-            self.get_cell(pos).get_unit().sound_effect.set_volume(0.3)
-            self.get_cell(pos).get_unit().sound_effect.play()
-            self.get_cell(pos).get_unit().sound.set_volume(0.4)
-            self.get_cell(pos).get_unit().sound.play()
-            self.get_cell(pos1).set_unit(self.get_cell(pos).get_unit())
-            self.get_cell(pos1).get_unit().already_moved = True
-            self.get_cell(pos).set_unit(None)
+        if start_cell.get_unit().already_moved:
+            return
+
+        start_cell.get_unit().get_sound()
+        start_cell.get_unit().sound_effect.set_volume(0.3)
+        start_cell.get_unit().sound_effect.play()
+        start_cell.get_unit().sound.set_volume(0.4)
+        start_cell.get_unit().sound.play()
+        end_cell.set_unit(self.get_cell(pos).get_unit())
+        end_cell.get_unit().already_moved = True
+        start_cell.set_unit(None)
 
     def get_cell(self, pos: tuple[int, int]) -> Cell or None:
         if self.is_pos_in_field(pos):
@@ -406,16 +413,17 @@ class Field:
         return False
 
     def on_click(self) -> None:
-        mouse_pos = self.get_coords(pygame.mouse.get_pos())
+        coords = self.get_coords(pygame.mouse.get_pos())
 
-        if self.current_cell_coords and mouse_pos in self.get_where_can_move():
-            print(self.move_unit(self.current_cell_coords, mouse_pos))
+        if self.current_cell_coords and coords in self.get_where_can_move():
+            print(self.move_unit(self.current_cell_coords, coords))
             self.current_cell_coords = None
             return
 
-        if mouse_pos != -1 and self.get_cell(mouse_pos).unit is not None:
-            if self.player_list[self.current_player].get_team() is self.get_cell(mouse_pos).get_team():
-                self.current_cell_coords = mouse_pos
+        if coords and self.get_cell(coords).get_unit():
+            if self.player_list[self.current_player].get_team() is self.get_cell(coords).get_team():
+                if self.get_cell(coords).get_unit() and not self.get_cell(coords).get_unit().already_moved:
+                    self.current_cell_coords = coords
         else:
             self.current_cell_coords = None
 
@@ -423,7 +431,7 @@ class Field:
         coords = ((coords[0] - self.x) // settings.cell_size,
                   (coords[1] - self.y) // settings.cell_size)
 
-        if not (0 <= coords[1] < len(self.field) and 0 <= coords[0] < len(self.field[0])):
-            return -1
+        if not self.is_pos_in_field(coords):
+            return
 
         return coords
