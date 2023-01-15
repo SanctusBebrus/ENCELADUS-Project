@@ -156,6 +156,7 @@ class Field:
                     self.check_base_status()
                     self.count_money()
                     self.check_players()
+                    self.check_encircled()
                     self.current_player += 1
                     self.current_player %= len(self.player_list)
                     self.find_base()
@@ -275,6 +276,25 @@ class Field:
 
             self.coords = self.x, self.y
 
+    def check_encircled(self):
+        for i in self.field:
+            for j in i:
+                neighbours = 0
+                pos = self.field.index(i), i.index(j)
+                try:
+                    for x, y in product(range(-1, 2), range(-1, 2)):
+                        if pos == (pos[0] + x, pos[1] + y):
+                            continue
+                        if self.field[pos[0]][pos[1]].get_team() == \
+                                self.field[pos[0] + x][pos[1] + y].get_team():
+                            neighbours += 1
+                        else:
+                            continue
+                except Exception:
+                    continue
+                if neighbours == 0:
+                    self.field[pos[0]][pos[1]].set_unit(None)
+
     def get_where_can_move(self):
         where_can_move = list()
 
@@ -319,7 +339,7 @@ class Field:
 
     def move_unit(self, pos: tuple[int, int], pos1: tuple[int, int]):
         if (self.get_cell(pos).get_team() is self.get_cell(pos1).get_team()
-                and self.get_cell(pos1).get_unit() or self.get_cell(pos).get_unit().already_moved) or \
+            and self.get_cell(pos1).get_unit() or self.get_cell(pos).get_unit().already_moved) or \
                 self.get_cell(pos1).defence_level > 0:
             return
         if (self.get_cell(pos1).get_unit() and
