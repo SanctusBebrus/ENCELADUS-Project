@@ -7,7 +7,7 @@ import settings
 import sound
 import units
 import player
-from itertools import product
+from itertools import product, combinations_with_replacement
 
 snow_image_path = 'sprites/cell/snow.png'
 ice_image_path = 'sprites/cell/ice_rock.png'
@@ -16,9 +16,12 @@ hole_image_path = 'sprites/cell/hole.png'
 team_1 = player.Team((255, 0, 0))
 LENGTH = WIDTH = random.randint(10, 16)
 
+pygame.font.init()
+
 
 class Cell:
     size = 50
+    font = pygame.font.SysFont('Arial', settings.cell_size)
 
     def __init__(self, team: player.Team = None, image_path: str = snow_image_path, unit: units.Unit or None = None):
         self.image = pygame.image.load(image_path)
@@ -42,6 +45,9 @@ class Cell:
         if self.unit:
             self.unit.draw_unit(self.surface, (0, 0))
 
+        if self.defence_level not in [0, 500]:
+            self.surface.blit(Cell.font.render(str(self.defence_level), True, True), (0, 0))
+
         surface.blit(self.surface, pos)
 
     def set_image(self, image_path: str) -> None:
@@ -56,11 +62,17 @@ class Cell:
     def set_team(self, team: player.Team) -> None:
         self.team = team
 
+    def set_defence_level(self, level):
+        self.defence_level = level
+
     def get_unit(self) -> units.Unit:
         return self.unit
 
     def get_team(self) -> player.Team:
         return self.team
+
+    def get_defence_level(self):
+        return self.defence_level
 
 
 class IceCell(Cell):
@@ -121,9 +133,31 @@ class Field:
 
     def update(self, surface: pygame.surface.Surface, events) -> None:
         self.event_control(events)
+
+        Cell.font = pygame.font.SysFont('Arial', settings.cell_size - 5)
+        self.calculate_defence()
+
         self.draw()
 
         surface.blit(self.surface, self.coords)
+
+    def calculate_defence(self):
+        for y in range(len(self.field)):
+            for x in range(len(self.field[0])):
+                if not self.get_cell((x, y)).get_unit():
+                    continue
+
+                for x1, y1 in product(range(-1, 2), repeat=2):
+                    if self.is_pos_in_field((x + x1, y + y1)):
+
+                        if self.get_cell((x + x1, y + y1)).get_team() is not self.get_cell((x, y)).get_team():
+                            continue
+
+                        if self.get_cell((x, y)).unit.default_defence > self.get_cell(
+                                (x + x1, y + y1)).get_defence_level():
+                            self.get_cell((x + x1, y + y1)).set_defence_level(
+                                self.get_cell((x, y)).unit.default_defence)
+                            print(self.get_cell((x + x1, y + y1)).get_defence_level())
 
     def event_control(self, events) -> None:
         for event in events:
@@ -173,13 +207,13 @@ class Field:
             if self.field[base[0]][base[1]].get_team() is team and \
                     isinstance(self.field[base[0]][base[1]].get_unit(), units.Base):
                 if base == base_green:
-                    self.coords = LENGTH * 10, LENGTH * 4
+                    self.coords = self.x, self.y = LENGTH * 10, LENGTH * 4
                 if base == base_yellow:
-                    self.coords = -LENGTH * 15, LENGTH * 4
+                    self.coords = self.x, self.y = -LENGTH * 15, LENGTH * 4
                 if base == base_red:
-                    self.coords = LENGTH * 16, -LENGTH * 45
+                    self.coords = self.x, self.y = LENGTH * 16, -LENGTH * 45
                 if base == base_blue:
-                    self.coords = -LENGTH * 16, -LENGTH * 45
+                    self.coords = self.x, self.y = -LENGTH * 16, -LENGTH * 45
 
     def find_mines(self):
         mines = 0
@@ -339,12 +373,14 @@ class Field:
 
     def move_unit(self, pos: tuple[int, int], pos1: tuple[int, int]):
         if (self.get_cell(pos).get_team() is self.get_cell(pos1).get_team()
-            and self.get_cell(pos1).get_unit() or self.get_cell(pos).get_unit().already_moved) or \
-                self.get_cell(pos1).defence_level > 0:
+            and self.get_cell(pos1).get_unit() or self.get_cell(pos).get_unit().already_moved) \
+                or self.get_cell(pos1).defence_level > 5:
             return
+
         if (self.get_cell(pos1).get_unit() and
             self.get_cell(pos1).get_unit().default_defence < self.get_cell(pos).get_unit().default_defence) or \
-                not self.get_cell(pos1).get_unit() or self.get_cell(pos).get_unit().default_defence == 4:
+                not self.get_cell(pos1).get_unit() or self.get_cell(pos).get_unit().default_defence == 4 \
+                or self.get_cell(pos).get_team() is self.get_cell(pos1).get_team():
             self.get_cell(pos).get_unit().get_sound()
             self.get_cell(pos).get_unit().sound_effect.set_volume(0.15)
             self.get_cell(pos).get_unit().sound_effect.play()
@@ -368,8 +404,9 @@ class Field:
 
     def on_click(self) -> None:
         mouse_pos = self.get_coords(pygame.mouse.get_pos())
+
         if self.current_cell_coords and mouse_pos in self.get_where_can_move():
-            self.move_unit(self.current_cell_coords, mouse_pos)
+            print(self.move_unit(self.current_cell_coords, mouse_pos))
             self.current_cell_coords = None
             return
 
