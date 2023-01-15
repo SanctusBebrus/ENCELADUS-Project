@@ -50,8 +50,6 @@ def start_screen(screen):
 
 
 def pause(screen):
-    main_theme = pygame.mixer.music.load(path + 'main_theme.mp3')
-    pygame.mixer.music.play(-1)
     intro_text = ["НАЖМИТЕ   ESC   ЧТОБЫ   ПРОДОЛЖИТЬ"]
     fon = pygame.transform.scale(load_image('sprites/backgrounds/ENCELADUS.png'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
@@ -170,6 +168,7 @@ class UnitsShop(Button):
 class TowersShop(Button):
     def __init__(self, screen, text: str, pos: tuple, width: int, height: int, field, font=20):
         super(TowersShop, self).__init__(screen, text, pos, width, height, field)
+        self.mine_cost = 2 ** self.field.find_mines() * 2
 
     def open_shop(self, events):
         btn_tower = ButtonWithCost(self.screen, 'Tower', (self.pos[0] + self.width, self.pos[1]), self.width,
@@ -183,10 +182,11 @@ class TowersShop(Button):
 
         # место для функции покупки здания Mine
         if btn_mine.check_clicked(events):
-            self.field.buy_unit(Mine, 60)
+            self.mine_cost = 2 ** self.field.find_mines() * 2
+            self.field.buy_unit(Mine, self.mine_cost + 60)
 
+        btn_mine.draw(cost=self.mine_cost + 60)
         btn_tower.draw(cost=25)
-        btn_mine.draw(cost=60)
 
 
 # Контроллер кнопок
