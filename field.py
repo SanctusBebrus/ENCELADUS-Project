@@ -318,10 +318,12 @@ class Field:
                 pos = self.field.index(i), i.index(j)
                 try:
                     for x, y in product(range(-1, 2), range(-1, 2)):
-                        if pos == (pos[0] + x, pos[1] + y):
+                        if pos == (pos[0] + x, pos[1] + y) or \
+                                not self.is_pos_in_field((pos[0] + x, pos[1] + y)):
                             continue
                         if self.field[pos[0]][pos[1]].get_team() == \
-                                self.field[pos[0] + x][pos[1] + y].get_team():
+                                self.field[pos[0] + x][pos[1] + y].get_team() and \
+                                self.is_pos_in_field((pos[0] + x, pos[1] + y)):
                             neighbours += 1
                         else:
                             continue
