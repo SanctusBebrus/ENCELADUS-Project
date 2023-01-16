@@ -208,8 +208,8 @@ class Shop:
         self.screen = screen
         self.field = field
 
-        self.btn_units = UnitsShop(self.screen, 'Units', (0, int(HEIGHT * 0.75) - 100), WIDTH // 10, WIDTH // 10, self.field)
-        self.btn_buildings = TowersShop(self.screen, 'Buildings', (0, int(HEIGHT * 0.88 - 61)), WIDTH // 10,
+        self.btn_units = UnitsShop(self.screen, 'Units', (0, int(HEIGHT * 0.63)), WIDTH // 10, WIDTH // 10, self.field)
+        self.btn_buildings = TowersShop(self.screen, 'Buildings', (0, int(HEIGHT * 0.80)), WIDTH // 10,
                                         WIDTH // 10, self.field, font=10)
 
         self.buying = False
@@ -222,16 +222,14 @@ class Shop:
             if 0 < mouse_pos[0] < WIDTH // 10 and int(HEIGHT * 0.88) < mouse_pos[1] < int(HEIGHT * 0.88) + WIDTH // 10:
                 return True
         else:
-            if 0 < mouse_pos[0] < WIDTH // 10 * 3 and int(HEIGHT * 0.88) < mouse_pos[1] < int(
-                    HEIGHT * 0.88) + WIDTH // 10:
+            if 0 < mouse_pos[0] < WIDTH // 10 * 3 and int(HEIGHT * 0.88) < mouse_pos[1] < int(HEIGHT * 0.88) + WIDTH // 10:
                 return True
 
         if not self.btn_units.shop_opened:
             if 0 < mouse_pos[0] < WIDTH // 10 and int(HEIGHT * 0.75) < mouse_pos[1] < int(HEIGHT * 0.75) + WIDTH // 10:
                 return True
         else:
-            if 0 < mouse_pos[0] < WIDTH // 10 * 5 and int(HEIGHT * 0.75) < mouse_pos[1] < int(
-                    HEIGHT * 0.75) + WIDTH // 10:
+            if 0 < mouse_pos[0] < WIDTH // 10 * 5 and int(HEIGHT * 0.75) < mouse_pos[1] < int(HEIGHT * 0.75) + WIDTH // 10:
                 return True
 
         if 0 < mouse_pos[0] < WIDTH // 9 * 4 and 0 < mouse_pos[1] < WIDTH // 14:
