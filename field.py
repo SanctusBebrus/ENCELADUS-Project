@@ -208,8 +208,9 @@ class Field:
                 y_min = min(y_min, y)
                 y_max = max(y_max, y)
 
-        self.coords = self.x, self.y = settings.WINDOW_WIDTH // 2 - (x_min + x_max) // 2 * settings.cell_size, \
-                                       settings.WINDOW_HEIGHT // 2 - (y_min + y_max) // 2 * settings.cell_size,
+        self.coords = self.x, self.y = settings.WINDOW_WIDTH // 2 - (
+                x_min + x_max) // 2 * settings.cell_size, settings.WINDOW_HEIGHT // 2 - (
+                                               y_min + y_max) // 2 * settings.cell_size
 
     def find_mines(self):
         mines = 0
