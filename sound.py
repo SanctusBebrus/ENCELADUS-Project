@@ -8,6 +8,12 @@ class Sound:
         pygame.mixer.init()
         self.default = pygame.mixer.Sound(path + 'default.mp3')
 
+        self.building = pygame.mixer.Sound(path + 'building.wav')
+        self.building.set_volume(0.3)
+
+        self.place_unit = pygame.mixer.Sound(path + 'place_unit.wav')
+        self.place_unit.set_volume(0.3)
+
         self.hunter_ = pygame.mixer.Sound(path + 'hunt_.wav')
         self.hunter_1 = pygame.mixer.Sound(path + 'hunter_1.wav')
         self.hunter_2 = pygame.mixer.Sound(path + 'hunter_2.wav')
