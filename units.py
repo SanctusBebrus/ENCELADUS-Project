@@ -1,4 +1,3 @@
-import pygame
 import settings
 import random
 
@@ -103,9 +102,9 @@ class Tower(Unit):
     def __init__(self, team):
         super(Tower, self).__init__(team)
         self.image = pygame.image.load(path + 'tower_sprt.png')
-        self.cost = 35
+        self.cost = 25
         self.is_building = True
-        self.maintenance = 20
+        self.maintenance = 10
         self.default_defence = 2
         self.is_dead = False
 
