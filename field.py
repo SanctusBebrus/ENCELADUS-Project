@@ -1,13 +1,10 @@
-import sys
-
 import pygame
-
 import random
 import settings
 import sound
 import units
 import player
-from itertools import product, combinations_with_replacement
+from itertools import product
 
 snow_image_path = 'sprites/cell/snow.png'
 ice_image_path = 'sprites/cell/ice_rock.png'
@@ -111,8 +108,8 @@ class Field:
     default_field = list(
         map(lambda y: list(map(lambda x: Cell(random.choice([team_1])), range(LENGTH))), range(WIDTH)))
 
-    for i, j in product(range(LENGTH + 3, LENGTH - 3), range(LENGTH + 3, LENGTH - 3)):
-        default_field[i][j] = IceCell(team_1)
+    for row, col in product(range(LENGTH + 3, LENGTH - 3), range(LENGTH + 3, LENGTH - 3)):
+        default_field[row][col] = IceCell(team_1)
 
     def __init__(self, player_list: list[player.Player], field: list[list[Cell]] = default_field,
                  scroll_speed=4):
@@ -134,7 +131,7 @@ class Field:
     def update(self, surface: pygame.surface.Surface, events) -> None:
         self.event_control(events)
 
-        Cell.font = pygame.font.SysFont('Arial', settings.cell_size - 5)
+        Cell.font = pygame.font.SysFont('Arial', int(0.15 * settings.cell_size))
         self.calculate_defence()
 
         self.draw()
@@ -147,22 +144,20 @@ class Field:
                 if not any(map(lambda x: True if isinstance(cell, x) else False, [IceCell, HoleCell])):
                     cell.set_defence_level(0)
 
-        for y in range(len(self.field)):
-            for x in range(len(self.field[0])):
-                if not self.get_cell((x, y)).get_unit():
-                    continue
+        for y, x in product(range(len(self.field)), range(len(self.field[0]))):
+            if not self.get_cell((x, y)).get_unit():
+                continue
 
-                for x1, y1 in product(range(-1, 2), repeat=2):
-                    if self.is_pos_in_field((x + x1, y + y1)):
+            for x1, y1 in product(range(-1, 2), repeat=2):
+                if self.is_pos_in_field((x + x1, y + y1)):
 
-                        if self.get_cell((x + x1, y + y1)).get_team() is not self.get_cell((x, y)).get_team():
-                            continue
+                    if self.get_cell((x + x1, y + y1)).get_team() is not self.get_cell((x, y)).get_team():
+                        continue
 
-                        if self.get_cell((x, y)).unit.default_defence > self.get_cell(
-                                (x + x1, y + y1)).get_defence_level():
-                            self.get_cell((x + x1, y + y1)).set_defence_level(
-                                self.get_cell((x, y)).unit.default_defence)
-                            print(self.get_cell((x + x1, y + y1)).get_defence_level())
+                    if self.get_cell((x, y)).unit.default_defence > self.get_cell(
+                            (x + x1, y + y1)).get_defence_level():
+                        self.get_cell((x + x1, y + y1)).set_defence_level(
+                            self.get_cell((x, y)).unit.default_defence)
 
     def event_control(self, events) -> None:
         for event in events:
@@ -206,34 +201,32 @@ class Field:
         y_min = 100
         y_max = 0
 
-        for y in range(len(self.field)):
-            for x in range(len(self.field[0])):
-                if self.get_cell((x, y)).get_team() is self.player_list[self.current_player].get_team():
-                    x_min = min(x_min, x)
-                    x_max = max(x_max, x)
-                    y_min = min(y_min, y)
-                    y_max = max(y_max, y)
+        for y, x in product(range(len(self.field)), range(len(self.field[0]))):
+            if self.get_cell((x, y)).get_team() is self.player_list[self.current_player].get_team():
+                x_min = min(x_min, x)
+                x_max = max(x_max, x)
+                y_min = min(y_min, y)
+                y_max = max(y_max, y)
 
         self.coords = self.x, self.y = settings.WINDOW_WIDTH // 2 - (x_min + x_max) // 2 * settings.cell_size, \
                                        settings.WINDOW_HEIGHT // 2 - (y_min + y_max) // 2 * settings.cell_size,
 
     def find_mines(self):
         mines = 0
-        for i in self.field:
-            for j in i:
-                if isinstance(j.get_unit(), units.Mine) and j.get_unit().get_team() == \
+        for row in self.field:
+            for col in row:
+                if isinstance(col.get_unit(), units.Mine) and col.get_unit().get_team() == \
                         self.player_list[self.current_player].get_team():
                     mines += 1
         return mines
 
     def buy_unit(self, unit, unit_cost):
-        print(self.player_list[self.current_player].base_is_alive)
         if self.player_list[self.current_player].base_is_alive:
             try:
                 mouse_pos = self.get_coords(pygame.mouse.get_pos())
                 if self.get_cell(mouse_pos).get_team() != self.player_list[self.current_player].get_team() \
                         and self.get_cell(mouse_pos).get_unit():
-                    return False
+                    return
                 if not self.get_cell(mouse_pos).get_unit() and self.get_cell(mouse_pos).get_team() == \
                         self.player_list[self.current_player].get_team() \
                         and self.player_list[self.current_player].money >= unit_cost:
@@ -242,10 +235,10 @@ class Field:
                             self.player_list[self.current_player].get_team()
                         )
                     )
+                    sound.Sound().building.play()
                     self.player_list[self.current_player].money -= unit_cost
-                    return True
             except Exception:
-                return False
+                pass
 
     def check_players(self):
         if not self.player_list[self.current_player].base_is_alive and self.player_list[self.current_player].money < 0:
@@ -253,19 +246,18 @@ class Field:
 
     def check_units(self):
         self.live_units = []
-        for i in self.field:
-            for j in i:
-                if j.get_unit() and j.get_unit().get_team() == self.player_list[self.current_player].get_team() \
-                        and not j.get_unit().is_building:
-                    self.live_units.append(j.get_unit())
-        print(*self.live_units)
+        for row in self.field:
+            for col in row:
+                if col.get_unit() and col.get_unit().get_team() == self.player_list[self.current_player].get_team() \
+                        and not col.get_unit().is_building:
+                    self.live_units.append(col.get_unit())
 
     def check_base_status(self):
-        for i in self.field:
-            for j in i:
-                if not (j.get_unit()
-                        and j.get_unit().get_team() == self.player_list[self.current_player].get_team()
-                        and j.get_unit().is_building and j.get_unit().is_base):
+        for row in self.field:
+            for col in row:
+                if not (col.get_unit()
+                        and col.get_unit().get_team() == self.player_list[self.current_player].get_team()
+                        and col.get_unit().is_building and col.get_unit().is_base):
                     continue
                 else:
                     self.player_list[self.current_player].base_is_alive = True
@@ -274,38 +266,38 @@ class Field:
         return
 
     def kill_all(self):
-        for i in self.field:
-            for j in i:
-                if (j.get_unit()
-                        and j.get_unit().get_team() == self.player_list[self.current_player].get_team()
-                        and not j.get_unit().is_building
+        for row in self.field:
+            for col in row:
+                if (col.get_unit()
+                        and col.get_unit().get_team() == self.player_list[self.current_player].get_team()
+                        and not col.get_unit().is_building
                         and self.player_list[self.current_player].money < 0):
-                    j.set_unit(None)
+                    col.set_unit(None)
                     self.live_units = []
 
     def count_money(self):
-        total = 0
+        total_profit = 0
         if self.live_units:
             for unit in self.live_units:
-                total -= unit.maintenance
+                total_profit -= unit.maintenance
 
-        for i in self.field:
-            for j in i:
-                if not j.get_unit() and j.get_team() == self.player_list[self.current_player].get_team() \
+        for row in self.field:
+            for col in row:
+                if not col.get_unit() and col.get_team() == self.player_list[self.current_player].get_team() \
                         and self.player_list[self.current_player].base_is_alive:
-                    total += j.profit
-                elif j.get_unit() and j.get_team() == self.player_list[self.current_player].get_team() \
+                    total_profit += col.profit
+                elif col.get_unit() and col.get_team() == self.player_list[self.current_player].get_team() \
                         and self.player_list[self.current_player].base_is_alive:
-                    total += j.get_unit().profit
-        self.player_list[self.current_player].money += total
-        self.player_list[self.current_player].player_profit = total
+                    total_profit += col.get_unit().profit
+        self.player_list[self.current_player].money += total_profit
+        self.player_list[self.current_player].player_profit = total_profit
         self.kill_all()
 
     def make_new_turn(self):
-        for i in self.field:
-            for j in i:
-                if j.get_unit() and j.get_unit().already_moved and not j.get_unit().is_building:
-                    j.get_unit().already_moved = False
+        for row in self.field:
+            for col in row:
+                if col.get_unit() and col.get_unit().already_moved and not col.get_unit().is_building:
+                    col.get_unit().already_moved = False
 
     def zoom(self, px: int) -> None:
         if self.min_rect_size < settings.cell_size + px < self.max_rect_size:
@@ -317,10 +309,10 @@ class Field:
             self.coords = self.x, self.y
 
     def check_encircled(self):
-        for i in self.field:
-            for j in i:
+        for row in self.field:
+            for col in row:
                 neighbours = 0
-                pos = self.field.index(i), i.index(j)
+                pos = self.field.index(row), row.index(col)
                 try:
                     for x, y in product(range(-1, 2), range(-1, 2)):
                         if pos == (pos[0] + x, pos[1] + y) or \
@@ -419,17 +411,16 @@ class Field:
         return False
 
     def on_click(self) -> None:
-        coords = self.get_coords(pygame.mouse.get_pos())
+        mouse_pos = self.get_coords(pygame.mouse.get_pos())
 
-        if self.current_cell_coords and coords in self.get_where_can_move():
-            print(self.move_unit(self.current_cell_coords, coords))
+        if self.current_cell_coords and mouse_pos in self.get_where_can_move():
+            print(self.move_unit(self.current_cell_coords, mouse_pos))
             self.current_cell_coords = None
             return
 
-        if coords and self.get_cell(coords).get_unit():
-            if self.player_list[self.current_player].get_team() is self.get_cell(coords).get_team():
-                if self.get_cell(coords).get_unit() and not self.get_cell(coords).get_unit().already_moved:
-                    self.current_cell_coords = coords
+        if mouse_pos != -1 and self.get_cell(mouse_pos).unit is not None:
+            if self.player_list[self.current_player].get_team() is self.get_cell(mouse_pos).get_team():
+                self.current_cell_coords = mouse_pos
         else:
             self.current_cell_coords = None
 
@@ -437,7 +428,7 @@ class Field:
         coords = ((coords[0] - self.x) // settings.cell_size,
                   (coords[1] - self.y) // settings.cell_size)
 
-        if not self.is_pos_in_field(coords):
-            return
+        if not (0 <= coords[1] < len(self.field) and 0 <= coords[0] < len(self.field[0])):
+            return -1
 
         return coords
