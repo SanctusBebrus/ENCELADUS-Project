@@ -190,6 +190,7 @@ class TowersShop(Button):
 
         # место для функции покупки здания Tower
         if btn_tower.check_clicked(events):
+            # self.field.buy_unit(Tower, 25)
             self.chosen_unit = Tower
             self.cost_unit = 25
 
@@ -208,8 +209,8 @@ class Shop:
         self.screen = screen
         self.field = field
 
-        self.btn_units = UnitsShop(self.screen, 'Units', (0, int(HEIGHT * 0.63)), WIDTH // 10, WIDTH // 10, self.field)
-        self.btn_buildings = TowersShop(self.screen, 'Buildings', (0, int(HEIGHT * 0.80)), WIDTH // 10,
+        self.btn_units = UnitsShop(self.screen, 'Units', (0, int(HEIGHT * 0.75)), WIDTH // 10, WIDTH // 10, self.field)
+        self.btn_buildings = TowersShop(self.screen, 'Buildings', (0, int(HEIGHT * 0.88)), WIDTH // 10,
                                         WIDTH // 10, self.field, font=10)
 
         self.buying = False
