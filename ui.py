@@ -190,14 +190,12 @@ class TowersShop(Button):
 
         # место для функции покупки здания Tower
         if btn_tower.check_clicked(events):
-            # self.field.buy_unit(Tower, 25)
             self.chosen_unit = Tower
             self.cost_unit = 25
 
         # место для функции покупки здания Mine
         if btn_mine.check_clicked(events):
-            # self.mine_cost = 2 ** self.field.find_mines() * 2
-            # self.field.buy_unit(Mine, self.mine_cost + 60)
+            self.mine_cost = 2 ** self.field.find_mines() * 2
             self.chosen_unit = Mine
             self.cost_unit = self.mine_cost + 60
 
