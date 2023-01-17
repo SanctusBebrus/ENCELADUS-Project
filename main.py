@@ -1,4 +1,6 @@
 import pygame
+
+import settings
 from level import default_field, y_player, g_player, r_player, b_player
 
 from settings import WINDOW_SIZE, CAPTION
@@ -28,7 +30,7 @@ if __name__ == '__main__':
     pygame.mixer.music.play()
 
     while True:
-        screen.fill((0, 0, 0))
+        screen.blit(settings.background_image, (0, 0))
         events = pygame.event.get()
 
         for e in events:

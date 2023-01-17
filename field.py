@@ -125,8 +125,8 @@ class Field:
         self.max_rect_size = 100
         self.min_rect_size = 45
 
-        self.surface = pygame.surface.Surface((len(field[0]) * self.max_rect_size,
-                                               len(field) * self.max_rect_size))
+        self.surface = pygame.surface.Surface((len(field[0]) * settings.cell_size,
+                                               len(field) * settings.cell_size))
 
     def update(self, surface: pygame.surface.Surface, events) -> None:
         self.event_control(events)
@@ -360,6 +360,8 @@ class Field:
         return where_can_move
 
     def draw(self) -> None:
+        self.surface = pygame.surface.Surface((len(self.field[0]) * settings.cell_size,
+                                               len(self.field) * settings.cell_size))
         self.surface.fill((0, 0, 0))
 
         where_can_move = list()
