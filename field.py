@@ -308,13 +308,14 @@ class Field:
 
             if px < 0 or pos == -1:
                 pos = self.get_coords((settings.WINDOW_WIDTH // 2, settings.WINDOW_HEIGHT // 2))
-            try:
-                self.x -= pos[0] * px
-                self.y -= pos[1] * px
 
-                self.coords = self.x, self.y
-            except TypeError:
-                pass
+            if pos == -1:
+                return
+
+            self.x -= pos[0] * px
+            self.y -= pos[1] * px
+
+            self.coords = self.x, self.y
 
     def check_encircled(self):
         for row in self.field:
@@ -424,11 +425,14 @@ class Field:
         mouse_pos = self.get_coords(pygame.mouse.get_pos())
 
         if self.current_cell_coords and mouse_pos in self.get_where_can_move():
-            print(self.move_unit(self.current_cell_coords, mouse_pos))
+            self.move_unit(self.current_cell_coords, mouse_pos)
             self.current_cell_coords = None
             return
 
-        if mouse_pos != -1 and self.get_cell(mouse_pos).unit is not None:
+        if mouse_pos != -1 and self.get_cell(mouse_pos).get_unit():
+            if self.get_cell(mouse_pos).get_unit().already_moved:
+                return
+
             if self.player_list[self.current_player].get_team() is self.get_cell(mouse_pos).get_team():
                 self.current_cell_coords = mouse_pos
         else:
