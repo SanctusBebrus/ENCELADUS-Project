@@ -304,10 +304,17 @@ class Field:
         if self.min_rect_size < settings.cell_size + px < self.max_rect_size:
             settings.cell_size += px
 
-            self.x -= len(self.field[0]) * px // 2
-            self.y -= len(self.field) * px // 2
+            pos = self.get_coords(pygame.mouse.get_pos())
 
-            self.coords = self.x, self.y
+            if px < 0 or pos == -1:
+                pos = self.get_coords((settings.WINDOW_WIDTH // 2, settings.WINDOW_HEIGHT // 2))
+            try:
+                self.x -= pos[0] * px
+                self.y -= pos[1] * px
+
+                self.coords = self.x, self.y
+            except TypeError:
+                pass
 
     def check_encircled(self):
         for row in self.field:
