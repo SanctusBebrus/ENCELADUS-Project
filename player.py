@@ -12,6 +12,7 @@ class Player:
         self.money = 70
         self.player_profit = 0
         self.base_is_alive = True
+        self.mine_cost = 60
 
     def get_team(self) -> Team:
         return self.team
