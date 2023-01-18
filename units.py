@@ -88,7 +88,7 @@ class Base(Unit):
     def __init__(self, team):
         super(Base, self).__init__(team)
         self.image = pygame.image.load(path + 'base_sprt.png')
-        self.default_defence = 2
+        self.default_defence = 4
         self.profit = 8
         self.is_base = True
         self.is_building = True
