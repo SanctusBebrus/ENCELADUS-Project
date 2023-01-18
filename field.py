@@ -193,6 +193,7 @@ class Field:
                     self.check_encircled()
                     self.current_player += 1
                     self.current_player %= len(self.player_list)
+                    self.current_cell_coords = None
                     self.find_base()
 
     def find_base(self):
