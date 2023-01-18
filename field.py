@@ -130,6 +130,8 @@ class Field:
 
     def update(self, surface: pygame.surface.Surface, events) -> None:
         self.event_control(events)
+        self.check_base_status()
+        self.check_players()
 
         Cell.font = pygame.font.SysFont('Arial', int(0.15 * settings.cell_size))
         self.calculate_defence()
@@ -187,9 +189,7 @@ class Field:
                 if event.key == pygame.K_RETURN:
                     self.make_new_turn()
                     self.check_units()
-                    self.check_base_status()
                     self.count_money()
-                    self.check_players()
                     self.check_encircled()
                     self.current_player += 1
                     self.current_player %= len(self.player_list)
@@ -253,8 +253,10 @@ class Field:
                 pass
 
     def check_players(self):
-        if not self.player_list[self.current_player].base_is_alive and self.player_list[self.current_player].money < 0:
+        if not self.player_list[self.current_player].base_is_alive:
+            self.kill_all()
             self.player_list.remove(self.player_list[self.current_player])
+            self.current_player -= 1
 
     def check_units(self):
         self.live_units = []
@@ -281,9 +283,13 @@ class Field:
         for row in self.field:
             for col in row:
                 if (col.get_unit()
-                        and col.get_unit().get_team() == self.player_list[self.current_player].get_team()
-                        and not col.get_unit().is_building
-                        and self.player_list[self.current_player].money < 0):
+                    and col.get_unit().get_team() == self.player_list[self.current_player].get_team()
+                    and not col.get_unit().is_building
+                    and not self.player_list[self.current_player].base_is_alive) \
+                        or (col.get_unit()
+                            and col.get_unit().get_team() == self.player_list[self.current_player].get_team()
+                            and not col.get_unit().is_building
+                            and self.player_list[self.current_player].money < 0):
                     col.set_unit(None)
                     self.live_units = []
 
