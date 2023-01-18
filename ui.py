@@ -177,6 +177,7 @@ class TowersShop(Button):
     def __init__(self, screen, text: str, pos: tuple, width: int, height: int, field, font=20):
         super(TowersShop, self).__init__(screen, text, pos, width, height, field)
         self.mine_cost = 2 ** self.field.find_mines() * 2
+        self.field.player_list[self.field.current_player].mine_cost = self.mine_cost
         self.shop_opened = False
 
         self.chosen_unit = None
@@ -194,9 +195,9 @@ class TowersShop(Button):
             self.chosen_unit = Tower
             self.cost_unit = 25
 
+        self.mine_cost = 2 ** self.field.find_mines() * 2
         # место для функции покупки здания Mine
         if btn_mine.check_clicked(events):
-            self.mine_cost = 2 ** self.field.find_mines() * 2
             self.chosen_unit = Mine
             self.cost_unit = self.mine_cost + 60
 
@@ -223,14 +224,16 @@ class Shop:
             if 0 < mouse_pos[0] < WIDTH // 10 and int(HEIGHT * 0.80) < mouse_pos[1] < int(HEIGHT * 0.80) + WIDTH // 10:
                 return True
         else:
-            if 0 < mouse_pos[0] < WIDTH // 10 * 3 and int(HEIGHT * 0.80) < mouse_pos[1] < int(HEIGHT * 0.80) + WIDTH // 10:
+            if 0 < mouse_pos[0] < WIDTH // 10 * 3 and int(HEIGHT * 0.80) < mouse_pos[1] < int(
+                    HEIGHT * 0.80) + WIDTH // 10:
                 return True
 
         if not self.btn_units.shop_opened:
             if 0 < mouse_pos[0] < WIDTH // 10 and int(HEIGHT * 0.62) < mouse_pos[1] < int(HEIGHT * 0.62) + WIDTH // 10:
                 return True
         else:
-            if 0 < mouse_pos[0] < WIDTH // 10 * 5 and int(HEIGHT * 0.62) < mouse_pos[1] < int(HEIGHT * 0.62) + WIDTH // 10:
+            if 0 < mouse_pos[0] < WIDTH // 10 * 5 and int(HEIGHT * 0.62) < mouse_pos[1] < int(
+                    HEIGHT * 0.62) + WIDTH // 10:
                 return True
 
         if 0 < mouse_pos[0] < WIDTH // 9 * 4 and 0 < mouse_pos[1] < WIDTH // 14:
