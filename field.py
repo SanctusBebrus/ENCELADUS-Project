@@ -105,6 +105,9 @@ class HoleCell(Cell):
 
 
 class Field:
+    clock = pygame.time.Clock()
+    FPS = 144
+
     default_field = list(
         map(lambda y: list(map(lambda x: Cell(random.choice([team_1])), range(LENGTH))), range(WIDTH)))
 
@@ -129,6 +132,7 @@ class Field:
                                                len(field) * settings.cell_size))
 
     def update(self, surface: pygame.surface.Surface, events) -> None:
+
         self.event_control(events)
         self.check_base_status()
         self.check_players()
@@ -137,13 +141,12 @@ class Field:
         self.calculate_defence()
 
         self.draw()
-
         surface.blit(self.surface, self.coords)
 
     def calculate_defence(self):
         for row in self.field:
             for cell in row:
-                if not any(map(lambda x: True if isinstance(cell, x) else False, [IceCell, HoleCell])):
+                if not any(map(lambda elem: True if isinstance(cell, elem) else False, [IceCell, HoleCell])):
                     cell.set_defence_level(0)
 
         for y, x in product(range(len(self.field)), range(len(self.field[0]))):
@@ -382,7 +385,6 @@ class Field:
         self.surface = pygame.surface.Surface((len(self.field[0]) * settings.cell_size,
                                                len(self.field) * settings.cell_size))
         self.surface.fill((0, 0, 0))
-
         where_can_move = list()
         if self.current_cell_coords:
             where_can_move = self.get_where_can_move()
@@ -462,5 +464,4 @@ class Field:
 
         if not (0 <= coords[1] < len(self.field) and 0 <= coords[0] < len(self.field[0])):
             return -1
-
         return coords
