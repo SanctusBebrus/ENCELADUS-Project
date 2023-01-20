@@ -105,9 +105,6 @@ class HoleCell(Cell):
 
 
 class Field:
-    clock = pygame.time.Clock()
-    FPS = 144
-
     default_field = list(
         map(lambda y: list(map(lambda x: Cell(random.choice([team_1])), range(LENGTH))), range(WIDTH)))
 
