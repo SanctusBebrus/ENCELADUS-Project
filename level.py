@@ -17,7 +17,7 @@ default_field = list(
 
 for i in range(random.randint(6, 9)):
     x1 = random.randint(2, LENGTH - 3)
-    y1 = random.randint(2, LENGTH - 3)
+    y1 = random.randint(0, LENGTH - 3)
     default_field[x1][y1] = IceCell(default_team)
 
 for i in range(random.randint(4, 7)):
