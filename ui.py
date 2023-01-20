@@ -1,11 +1,20 @@
 import sys
 
-import pygame
+import pygame.display
 
-import field
 from settings import WINDOW_SIZE
 from units import *
 from sound import path
+
+pygame.init()
+
+
+class Arrow(pygame.sprite.Sprite):
+    def __init__(self, x, filename):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load(filename).convert_alpha()
+        self.rect = self.image.get_rect(center=(50, 0))
+
 
 WIDTH, HEIGHT = WINDOW_SIZE
 
@@ -24,29 +33,41 @@ def terminate():
 def start_screen(screen):
     main_theme = pygame.mixer.music.load(path + 'main_theme.mp3')
     pygame.mixer.music.play(-1)
+    clock = pygame.time.Clock()
+    FPS = 144
     intro_text = ["НАЖМИТЕ   ENTER   ЧТОБЫ   НАЧАТЬ"]
+    arrow = Arrow(WINDOW_SIZE, 'sprites/backgrounds/arr.cur')
 
     fon = pygame.transform.scale(load_image('sprites/backgrounds/ENCELADUS.png'), (WIDTH, HEIGHT))
-    screen.blit(fon, (0, 0))
-    font = pygame.font.Font(None, 20)
-    text_coord = HEIGHT // 2 + HEIGHT // 4
-    for line in intro_text:
-        string_rendered = font.render(line, True, pygame.Color('black'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = WIDTH // 2 - 90
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
 
     while True:
+        screen.fill('black')
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                 pygame.mixer.music.stop()
                 return  # начинаем игру
-        pygame.display.flip()
+        screen.blit(fon, (0, 0))
+        font = pygame.font.Font(None, 20)
+        text_coord = HEIGHT // 2 + HEIGHT // 4
+        for line in intro_text:
+            string_rendered = font.render(line, True, pygame.Color('black'))
+            intro_rect = string_rendered.get_rect()
+            text_coord += 10
+            intro_rect.top = text_coord
+            intro_rect.x = WIDTH // 2 - 90
+            text_coord += intro_rect.height
+            screen.blit(string_rendered, intro_rect)
+        pos = pygame.mouse.get_pos()
+        arrow.rect.x, arrow.rect.y = pos[0], pos[1]
+
+        if pygame.mouse.get_focused():
+            pygame.mouse.set_visible(False)
+            screen.blit(arrow.image, arrow.rect)
+
+        pygame.display.update()
+        clock.tick(FPS)
 
 
 def pause(screen):
@@ -297,6 +318,7 @@ class ButtonsController:
         self.shop = Shop(screen, field)
         self.field = field
         self.screen = screen
+        self.arrow = Arrow(WINDOW_SIZE, 'sprites/backgrounds/arr.cur')
 
         self.units_shop_opened = False
         self.building_shop_opened = False
@@ -318,6 +340,12 @@ class ButtonsController:
 
         self.next_turn_btn.draw()
         self.pause_btn.draw()
+        pos = pygame.mouse.get_pos()
+        self.arrow.rect.x, self.arrow.rect.y = pos[0], pos[1]
+
+        if pygame.mouse.get_focused():
+            pygame.mouse.set_visible(False)
+            self.screen.blit(self.arrow.image, self.arrow.rect)
 
         if self.next_turn_btn.check_clicked(events):
             self.field.make_new_turn()
